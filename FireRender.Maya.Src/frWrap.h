@@ -223,12 +223,7 @@ namespace frw
 		ContextParameterActivePlugin = RPR_CONTEXT_ACTIVE_PLUGIN,
 		ContextParameterScene = RPR_CONTEXT_SCENE,
 		ContextParameterFilterType = RPR_CONTEXT_IMAGE_FILTER_TYPE,
-		ContextParameterFilterBoxRadius = RPR_CONTEXT_IMAGE_FILTER_BOX_RADIUS,
-		ContextParameterFilterGaussianRadius = RPR_CONTEXT_IMAGE_FILTER_GAUSSIAN_RADIUS,
-		ContextParameterFilterTriangleRadius = RPR_CONTEXT_IMAGE_FILTER_TRIANGLE_RADIUS,
-		ContextParameterFilterMitchellRadius = RPR_CONTEXT_IMAGE_FILTER_MITCHELL_RADIUS,
-		ContextParameterFilterLanczosRadius = RPR_CONTEXT_IMAGE_FILTER_LANCZOS_RADIUS,
-		ContextParameterFilterBlackmanHarrisRadius = RPR_CONTEXT_IMAGE_FILTER_BLACKMANHARRIS_RADIUS,
+		ContextParameterFilterRadius = RPR_CONTEXT_IMAGE_FILTER_RADIUS,
 		ContextParameterToneMappingType = RPR_CONTEXT_TONE_MAPPING_TYPE,
 		ContextParameterToneMappingLinearScale = RPR_CONTEXT_TONE_MAPPING_LINEAR_SCALE,
 		ContextParameterToneMappingPhotolinearSensitivity = RPR_CONTEXT_TONE_MAPPING_PHOTO_LINEAR_SENSITIVITY,
@@ -238,7 +233,7 @@ namespace frw
 		ContextParameterToneMappingReinhard2Postscale = RPR_CONTEXT_TONE_MAPPING_REINHARD02_POST_SCALE,
 		ContextParameterToneMappingReinhard2Burn = RPR_CONTEXT_TONE_MAPPING_REINHARD02_BURN,
 		ContextParameterMaxRecursion = RPR_CONTEXT_MAX_RECURSION,
-		ContextParameterRayCastEpsilon = RPR_CONTEXT_RAY_CAST_EPISLON,
+		ContextParameterRayCastEpsilon = RPR_CONTEXT_RAY_CAST_EPSILON,
 		ContextParameterRadienceClamp = RPR_CONTEXT_RADIANCE_CLAMP,
 		ContextParameterXFlip = RPR_CONTEXT_X_FLIP,
 		ContextParameterYFlip = RPR_CONTEXT_Y_FLIP,
@@ -1060,34 +1055,6 @@ namespace frw
 			checkStatus(res);
 		}
 
-		void SetLinearMotion(float x, float y, float z)
-		{
-			auto res = rprShapeSetLinearMotion(Handle(), x, y, z);
-
-			if (res == RPR_ERROR_UNSUPPORTED)
-			{
-				return;
-			}
-			else
-			{
-				checkStatus(res);
-			}
-		}
-
-		void SetAngularMotion(float x, float y, float z, float w)
-		{
-			auto res = rprShapeSetAngularMotion(Handle(), x, y, z, w);
-
-			if (res == RPR_ERROR_UNSUPPORTED)
-			{
-				return;
-			}
-			else
-			{
-				checkStatus(res);
-			}
-		}
-
 		void SetVertexColors(const std::vector<int>& vertexIndices, const std::vector<MColor>& vertexColors, rpr_int indexCount)
 		{
 			const int numComponents = 4;
@@ -1655,36 +1622,6 @@ namespace frw
 
 			res = rprCameraSetMotionTransformCount(Handle(), 1);
 			checkStatus(res);
-		}
-
-		// REMOVE THIS AFTER REMOVING TAHOE
-		void SetLinearMotion(float x, float y, float z)
-		{
-			auto res = rprCameraSetLinearMotion(Handle(), x, y, z);
-
-			if (res == RPR_ERROR_UNSUPPORTED)
-			{
-				return;
-			}
-			else
-			{
-				checkStatus(res);
-			}
-		}
-
-		// REMOVE THIS AFTER REMOVING TAHOE
-		void SetAngularMotion(float x, float y, float z, float w)
-		{
-			auto res = rprCameraSetAngularMotion(Handle(), x, y, z, w);
-
-			if (res == RPR_ERROR_UNSUPPORTED)
-			{
-				return;
-			}
-			else
-			{
-				checkStatus(res);
-			}
 		}
 
 	};
@@ -2728,6 +2665,41 @@ namespace frw
 		{
 			auto res = rprMaterialNodeSetInputUByKey(Handle(), RPR_MATERIAL_INPUT_TYPE, mode);
 			checkStatus(res);
+		}
+
+		void SetMaterialControlPointValue(unsigned idx, const Value& v)
+		{
+			assert(idx <= 15);
+			if (idx > 15)
+				return;
+
+			static std::vector<rpr_material_node_input> rampOverrideInputs =
+			{ 
+				RPR_MATERIAL_INPUT_0,
+				RPR_MATERIAL_INPUT_1,
+				RPR_MATERIAL_INPUT_2,
+				RPR_MATERIAL_INPUT_3,
+				RPR_MATERIAL_INPUT_4,
+				RPR_MATERIAL_INPUT_5,
+				RPR_MATERIAL_INPUT_6,
+				RPR_MATERIAL_INPUT_7,
+				RPR_MATERIAL_INPUT_8,
+				RPR_MATERIAL_INPUT_9,
+				RPR_MATERIAL_INPUT_10,
+				RPR_MATERIAL_INPUT_11,
+				RPR_MATERIAL_INPUT_12,
+				RPR_MATERIAL_INPUT_13,
+				RPR_MATERIAL_INPUT_14,
+				RPR_MATERIAL_INPUT_15,
+			};
+
+			if (v.IsNode())
+			{
+				Node n = v.GetNode();
+				AddReference(n);
+				auto res = rprMaterialNodeSetInputNByKey(Handle(), rampOverrideInputs[idx], n.Handle());
+				checkStatus(res);
+			}
 		}
 	};
 
