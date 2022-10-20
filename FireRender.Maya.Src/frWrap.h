@@ -174,7 +174,8 @@ namespace frw
 		ValueTypeToonRamp = RPR_MATERIAL_NODE_TOON_RAMP,
 		ValueTypeGridSampler = RPR_MATERIAL_NODE_GRID_SAMPLER,
 		ValueTypePrimvarLookup = RPR_MATERIAL_NODE_PRIMVAR_LOOKUP,
-		ValueTypeRamp = RPR_MATERIAL_NODE_RAMP
+		ValueTypeRamp = RPR_MATERIAL_NODE_RAMP,
+		ValueTypeBlackBody = RPR_MATERIAL_NODE_BLACKBODY
 	};
 
 	enum ShaderType
@@ -2410,6 +2411,36 @@ namespace frw
 			assert(status == RPR_SUCCESS);
 		}
 
+		void SetSceneSyncFinCallback(void* callback, void* userData)
+		{
+			rpr_int status = RPR_SUCCESS;
+			status = rprContextSetParameterByKeyPtr(Handle(), RPR_CONTEXT_UPDATE_TIME_CALLBACK_FUNC, callback);
+			assert(status == RPR_SUCCESS);
+
+			status = rprContextSetParameterByKeyPtr(Handle(), RPR_CONTEXT_UPDATE_TIME_CALLBACK_DATA, userData);
+			assert(status == RPR_SUCCESS);
+		}
+
+		void SetFirstIterationCallback(void* callback, void* userData)
+		{
+			rpr_int status = RPR_SUCCESS;
+			status = rprContextSetParameterByKeyPtr(Handle(), RPR_CONTEXT_FIRST_ITERATION_TIME_CALLBACK_FUNC, callback);
+			assert(status == RPR_SUCCESS);
+
+			status = rprContextSetParameterByKeyPtr(Handle(), RPR_CONTEXT_FIRST_ITERATION_TIME_CALLBACK_DATA, userData);
+			assert(status == RPR_SUCCESS);
+		}
+
+		void SetRenderTimeCallback(void* callback, void* userData)
+		{
+			rpr_int status = RPR_SUCCESS;
+			status = rprContextSetParameterByKeyPtr(Handle(), RPR_CONTEXT_RENDER_TIME_CALLBACK_FUNC, callback);
+			assert(status == RPR_SUCCESS);
+
+			status = rprContextSetParameterByKeyPtr(Handle(), RPR_CONTEXT_RENDER_TIME_CALLBACK_DATA, userData);
+			assert(status == RPR_SUCCESS);
+		}
+
 		void AbortRender()
 		{
 			rpr_int status = RPR_SUCCESS;
@@ -2572,6 +2603,21 @@ namespace frw
 		{
 			AddReference(v);
 			return rprMaterialNodeSetInputGridDataByKey(Handle(), RPR_MATERIAL_INPUT_DATA, v.Handle());
+		}
+	};
+
+	class BlackBodyNode : public ValueNode
+	{
+	public:
+		explicit BlackBodyNode(const MaterialSystem& h) : ValueNode(h, ValueTypeBlackBody) {}
+		rpr_int SetGridSampler(GridNode v)
+		{
+			AddReference(v);
+			return rprMaterialNodeSetInputNByKey(Handle(), RPR_MATERIAL_INPUT_TEMPERATURE, v.Handle());
+		}
+		rpr_int SetTemperatureValueKelvin(float f)
+		{
+			return rprMaterialNodeSetInputFByKey(Handle(), RPR_MATERIAL_INPUT_KELVIN, f, 0.0f, 0.0f, 0.0);
 		}
 	};
 
@@ -3712,10 +3758,27 @@ namespace frw
 			return false;
 		}
 
-		void xSetParameterLight(rpr_material_node_input parameter, Light light)
+		void LinkLight(const Light& light)
 		{
-			const Data& d = data();
-			rpr_int res = rprMaterialNodeSetInputLightDataByKey(Handle(), parameter, light.Handle());
+			AddReference(light);
+
+			rpr_int res = rprMaterialNodeSetInputLightDataByKey(Handle(), RPR_MATERIAL_INPUT_LIGHT, light.Handle());
+			if (res == RPR_ERROR_UNSUPPORTED ||
+				res == RPR_ERROR_INVALID_PARAMETER)
+			{
+				// print error/warning if needed
+			}
+			else
+			{
+				checkStatus(res);
+			}
+		}
+
+		void ClearLinkedLight(const Light& light)
+		{
+			RemoveReference(light);
+
+			rpr_int res = rprMaterialNodeSetInputLightDataByKey(Handle(), RPR_MATERIAL_INPUT_LIGHT, nullptr);
 			if (res == RPR_ERROR_UNSUPPORTED ||
 				res == RPR_ERROR_INVALID_PARAMETER)
 			{
