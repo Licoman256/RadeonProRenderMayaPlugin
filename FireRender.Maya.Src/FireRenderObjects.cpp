@@ -103,6 +103,12 @@ std::string FireRenderObject::uuidWithoutInstanceNumberForString(const std::stri
 
 void FireRenderObject::setDirty()
 {
+#ifdef _DEBUG
+	auto node = Object();
+	MFnDagNode dagNode(node);
+	MString thisName = dagNode.name();
+#endif
+
 	context()->setDirtyObject(this);
 }
 
@@ -668,12 +674,12 @@ FireRenderMeshCommon::~FireRenderMeshCommon()
 }
 
 FireRenderMesh::FireRenderMesh(FireRenderContext* context, const MDagPath& dagPath) :
-	FireRenderMeshCommon(context, dagPath), m_SkipCallbackCounter(0)
+	FireRenderMeshCommon(context, dagPath)
 {
 }
 
 FireRenderMesh::FireRenderMesh(const FireRenderMesh& rhs, const std::string& uuid)
-	: FireRenderMeshCommon(rhs, uuid), m_SkipCallbackCounter(0)
+	: FireRenderMeshCommon(rhs, uuid)
 {
 }
 
@@ -967,6 +973,9 @@ void FireRenderMeshCommon::setContourVisibility(bool contourVisibility)
 
 void FireRenderNode::RegisterCallbacks()
 {
+	MFnDependencyNode fnDep(Object());
+	std::string nodeName = fnDep.name().asChar();
+
 	FireRenderObject::RegisterCallbacks();
 	if (context()->getCallbackCreationDisabled())
 		return;
@@ -1679,50 +1688,6 @@ void FireRenderMesh::GetShapes(frw::Shape& outShape)
 	SaveUsedUV(Object());
 }
 
-void FireRenderMesh::ProccessSmoothCallbackWorkaroundIfNeeds(const MObject& object)
-{
-	if (!object.hasFn(MFn::kMesh))
-	{
-		return;
-	}
-
-	DependencyNode attributes(object);
-	if (!attributes.getBool("displaySmoothMesh"))
-	{
-		return;
-	}
-
-	// check hierarchy up thorugh parents to analyze do they have animation tracks or not
-	MFnDagNode node(object);
-	
-	bool foundAnimatedGrandParent = false;
-	for (unsigned int indexParent = 0; indexParent < node.parentCount(); ++indexParent)
-	{
-		MObject parent = MFnDagNode(node.parent(indexParent)).parent(0); // get grand parent
-
-		while (!parent.isNull())
-		{
-			// check if parent is animated
-			MSelectionList selList;
-			selList.add(parent);
-
-			if (MAnimUtil::isAnimated(selList))
-			{
-				foundAnimatedGrandParent = true;
-				break;
-			}
-
-			parent = MFnDagNode(parent).parent(0);
-		}
-	}
-
-	if (foundAnimatedGrandParent)
-	{
-		// duplicate polysmooth and deleteNode trigger callback on mesh node - nodeDirty and attributeChanged(world_matrix[0])
-		m_SkipCallbackCounter += 2;
-	}
-}
-
 bool FireRenderMesh::TranslateMeshWrapped(const MDagPath& dagPath, frw::Shape& outShape)
 {
 	assert(IsMainInstance()); // should already be main instance at this point
@@ -1741,7 +1706,6 @@ bool FireRenderMesh::TranslateMeshWrapped(const MDagPath& dagPath, frw::Shape& o
 		MString name = dagNode.fullPathName();
 		assert(m_meshData.IsInitialized());
 
-		ProccessSmoothCallbackWorkaroundIfNeeds(Object());
 		outShape = FireMaya::MeshTranslator::TranslateMesh(m_meshData, context->GetContext(), Object(), m.faceMaterialIndices, motionSamplesCount, dagPath.fullPathName());
 	}
 
@@ -1872,22 +1836,18 @@ const std::vector<int>& FireRenderMeshCommon::GetFaceMaterialIndices(void) const
 
 void FireRenderMesh::OnNodeDirty()
 {
-	if (m_SkipCallbackCounter > 0)
-	{
-		m_SkipCallbackCounter--;
-		return;
-	}
-
-	m.changed.mesh = true;
 	setDirty();
 }
 
 void FireRenderMesh::OnPlugDirty(MObject& node, MPlug& plug)
 {
-	if (m_SkipCallbackCounter > 0)
+	MString plugName = plug.partialName();
+
+	// recreate mesh only if user changes point positions or smooth preview flag.
+	// We need to add more attribute to track here
+	if ((plugName == "pt") || (plugName == "dsm"))
 	{
-		m_SkipCallbackCounter--;
-		return;
+		m.changed.mesh = true;
 	}
 
 	FireRenderNode::OnPlugDirty(node, plug);
@@ -1903,8 +1863,10 @@ void FireRenderMesh::ShaderDirtyCallback(MObject& node, void* clientData)
 {
 	DebugPrint("CALLBACK > ShaderDirtyCallback(%s)", node.apiTypeStr());
 
+#ifdef _DEBUG
 	MFnDependencyNode fnShdr(node);
 	std::string shdrName = fnShdr.name().asChar();
+#endif
 
 	if (auto self = static_cast<FireRenderMesh*>(clientData))
 	{
@@ -1979,7 +1941,6 @@ bool FireRenderMesh::ReloadMesh(unsigned int sampleIdx /*= 0*/)
 	{
 		ContextSetDirtyObjectAutoLocker locker(*context);
 
-		ProccessSmoothCallbackWorkaroundIfNeeds(Object());
 		success = FireMaya::MeshTranslator::PreProcessMesh(m_meshData, context->GetContext(), Object(), motionSamplesCount, sampleIdx, dagPath.fullPathName());
 	}
 
@@ -2038,11 +1999,10 @@ void FireRenderLight::detachFromScene()
 	for (auto it = shaderIds.first; it != shaderIds.second; ++it)
 	{
 		frw::Shader linkedShader = scope.GetCachedShader(it->second);
+		if (!linkedShader.IsValid())
+			continue;
+
 		linkedShader.ClearLinkedLight(GetFrLight().light);
-	}
-	if (std::distance(shaderIds.first, shaderIds.second) != 0)
-	{
-		scope.ClearCachedShaderIds(lightId);
 	}
 
 	if (auto scene = Scene())
@@ -2159,19 +2119,20 @@ void FireRenderLight::Freshen(bool shouldCalculateHash)
 		if (dagPath.isVisible())
 		{
 			attachToScene();
+
+			FireMaya::Scope& scope = context()->GetScope();
+			std::string lightId = getNodeUUid(Object());
+			auto shaderIds = scope.GetCachedShaderIds(lightId);
+			for (auto it = shaderIds.first; it != shaderIds.second; ++it)
+			{
+				frw::Shader linkedShader = scope.GetCachedShader(it->second);
+				if (!linkedShader.IsValid())
+					continue;
+
+				linkedShader.LinkLight(GetFrLight().light);
+			}
 		}
 	}
-
-	for (auto* meshPtr : m_linkedMeshes)
-	{
-		FireRenderMesh* mesh = dynamic_cast<FireRenderMesh*>(const_cast<FireRenderMeshCommon*>(meshPtr));
-
-		if (mesh != nullptr)
-		{
-			mesh->OnShaderDirty();
-		}
-	}
-	m_linkedMeshes.clear();
 
 	FireRenderNode::Freshen(shouldCalculateHash);
 }
@@ -2212,11 +2173,6 @@ void FireRenderLight::setPortal(bool value)
 bool FireRenderLight::portal()
 {
 	return m_portal;
-}
-
-void FireRenderLight::addLinkedMesh(FireRenderMeshCommon const* mesh)
-{
-	m_linkedMeshes.emplace_back(mesh);
 }
 
 FireRenderPhysLight::FireRenderPhysLight(FireRenderContext* context, const MDagPath& dagPath) :
@@ -2267,11 +2223,10 @@ void FireRenderEnvLight::detachFromScene()
 	for (auto it = shaderIds.first; it != shaderIds.second; ++it)
 	{
 		frw::Shader linkedShader = scope.GetCachedShader(it->second);
+		if (!linkedShader.IsValid())
+			continue;
+
 		linkedShader.ClearLinkedLight(getLight());
-	}
-	if (std::distance(shaderIds.first, shaderIds.second) != 0)
-	{
-		scope.ClearCachedShaderIds(lightId);
 	}
 
 	if (auto scene = Scene())
@@ -2418,26 +2373,22 @@ void FireRenderEnvLight::Freshen(bool shouldCalculateHash)
 
 			attachToScene();	// normal!
 		}
-	}
 
-	for (auto* meshPtr : m_linkedMeshes)
-	{
-		FireRenderMesh* mesh = dynamic_cast<FireRenderMesh*>(const_cast<FireRenderMeshCommon*>(meshPtr));
-
-		if (mesh != nullptr)
+		std::string lightId = getNodeUUid(Object());
+		auto shaderIds = scope.GetCachedShaderIds(lightId);
+		for (auto it = shaderIds.first; it != shaderIds.second; ++it)
 		{
-			mesh->OnShaderDirty();
+			frw::Shader linkedShader = scope.GetCachedShader(it->second);
+			if (!linkedShader.IsValid())
+				continue;
+
+			linkedShader.LinkLight(getLight());
 		}
 	}
-	m_linkedMeshes.clear();
 
 	FireRenderNode::Freshen(shouldCalculateHash);
 }
 
-void FireRenderEnvLight::addLinkedMesh(FireRenderMeshCommon const* mesh)
-{
-	m_linkedMeshes.emplace_back(mesh);
-}
 
 //===================
 // Camera

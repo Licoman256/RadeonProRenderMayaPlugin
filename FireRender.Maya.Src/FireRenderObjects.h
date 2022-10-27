@@ -432,8 +432,6 @@ private:
 	
 	bool IsSelected(const MDagPath& dagPath) const;
 
-	void ProccessSmoothCallbackWorkaroundIfNeeds(const MObject& object);
-
 	// A mesh in Maya can have multiple shaders
 	// in fr it must be split in multiple shapes
 	// so this return the list of all the fr_shapes created for this Maya mesh
@@ -441,7 +439,6 @@ private:
 	virtual HashValue CalculateHash() override;
 
 private:
-	unsigned int m_SkipCallbackCounter;
 };
 
 // Fire render light
@@ -482,9 +479,6 @@ public:
 	// return portal
 	bool portal();
 
-	// add new linked mesh
-	void addLinkedMesh(FireRenderMeshCommon const* mesh);
-
 protected:
 	void UpdateTransform(const MMatrix& matrix) override;
 
@@ -500,9 +494,6 @@ protected:
 
 	// portal flag
 	bool m_portal;
-
-	// meshes linked via toon shader
-	std::vector<FireRenderMeshCommon const*> m_linkedMeshes;
 };
 
 class FireRenderPhysLight : public FireRenderLight
@@ -547,9 +538,6 @@ public:
 
 	inline frw::EnvironmentLight getLight() { return m.light; }
 
-	// add new linked mesh
-	void addLinkedMesh(FireRenderMeshCommon const* mesh);
-
 protected:
 	virtual void attachToSceneInternal();
 	virtual void detachFromSceneInternal();
@@ -558,9 +546,6 @@ private:
 
 	// Transform matrix
 	MMatrix m_matrix;
-
-	// meshes linked via toon shader
-	std::vector<FireRenderMeshCommon const*> m_linkedMeshes;
 
 public:
 	struct
