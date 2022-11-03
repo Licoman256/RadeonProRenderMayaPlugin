@@ -30,6 +30,9 @@ public:
 
     bool IsHairSupported() const override { return true; }
     bool IsVolumeSupported() const override { return true; }
+    bool IsNorthstarVolumeSupported() const { return true; }
+
+    virtual void setupContextHybridParams(const FireRenderGlobalsData& fireRenderGlobalsData);
 
     virtual bool IsMaterialNodeIDSupported() const { return false; }
     virtual bool IsMeshObjectIDSupported() const { return false; }

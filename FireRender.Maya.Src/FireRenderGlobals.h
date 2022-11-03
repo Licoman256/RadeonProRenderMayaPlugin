@@ -81,6 +81,25 @@ public:
 		kML
 	};
 
+	enum PtDenoiserType {
+		kNoPtDenoiser = 0,
+		kSVGF,
+		kASVGF
+	};
+
+	enum RestirGIBiasCorrection {
+		kNoBiasCorrection = 0,
+		kUniformWeights,
+		kStochasticMIS,
+		kDeterministicMIS
+	};
+
+	enum ReservoirSampling {
+		kDisabled = 0,
+		kScreenSpace,
+		kWorldSpace
+	};
+
 	FireRenderGlobals();
 
 	virtual ~FireRenderGlobals();

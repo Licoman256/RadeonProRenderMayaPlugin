@@ -104,3 +104,50 @@ bool HybridProContext::IsRenderQualitySupported(RenderQuality quality) const
 	return ((quality == RenderQuality::RenderQualityFull) || (quality == RenderQuality::RenderQualityHybridPro));
 }
 
+void HybridProContext::setupContextHybridParams(const FireRenderGlobalsData& fireRenderGlobalsData)
+{
+	frw::Context context = GetContext();
+	rpr_context frcontext = context.Handle();
+
+	rpr_int frstatus = RPR_SUCCESS;
+
+	bool isViewportRender = (GetRenderType() == RenderType::ViewportRender) || (GetRenderType() == RenderType::IPR);
+	if (isViewportRender)
+	{
+		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_PT_DENOISER, fireRenderGlobalsData.viewportPtDenoiser);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_MATERIAL_CACHE, fireRenderGlobalsData.viewportMaterialCache);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_GI, fireRenderGlobalsData.viewportRestirGI);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_GI_BIAS_CORRECTION, fireRenderGlobalsData.viewportRestirGIBiasCorrection);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1f(frcontext, RPR_CONTEXT_RESERVOIR_SAMPLING, fireRenderGlobalsData.viewportReservoirSampling);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1f(frcontext, RPR_CONTEXT_RESTIR_SPATIAL_RESAMPLE_ITERATIONS, fireRenderGlobalsData.viewportRestirSpatialResampleIterations);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1f(frcontext, RPR_CONTEXT_RESTIR_MAX_RESERVOIRS_PER_CELL, fireRenderGlobalsData.viewportRestirMaxReservoirsPerCell);
+		checkStatus(frstatus);
+	}
+	else
+	{
+		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_PT_DENOISER, fireRenderGlobalsData.productionPtDenoiser);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_MATERIAL_CACHE, fireRenderGlobalsData.productionMaterialCache);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_GI, fireRenderGlobalsData.productionRestirGI);
+		checkStatus(frstatus);
+
+		frstatus = rprContextSetParameterByKey1f(frcontext, RPR_CONTEXT_RESERVOIR_SAMPLING, fireRenderGlobalsData.productionReservoirSampling);
+		checkStatus(frstatus);
+	}
+}
+

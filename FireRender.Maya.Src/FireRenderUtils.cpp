@@ -515,6 +515,50 @@ void FireRenderGlobalsData::readFromCurrentScene()
 		if (!plug.isNull())
 			reflectionCatcherEnabled = plug.asBool();
 
+		plug = frGlobalsNode.findPlug("ptDenoiser");
+		if (!plug.isNull())
+			viewportPtDenoiser = plug.asInt();
+
+		plug = frGlobalsNode.findPlug("materialCache");
+		if (!plug.isNull())
+			viewportMaterialCache = plug.asBool();
+
+		plug = frGlobalsNode.findPlug("restirGI");
+		if (!plug.isNull())
+			viewportRestirGI = plug.asBool();
+
+		plug = frGlobalsNode.findPlug("restirGIBiasCorrection");
+		if (!plug.isNull())
+			viewportRestirGIBiasCorrection = plug.asInt();
+
+		plug = frGlobalsNode.findPlug("reservoirSampling");
+		if (!plug.isNull())
+			viewportReservoirSampling = plug.asInt();
+
+		plug = frGlobalsNode.findPlug("restirSpatialResampleIterations");
+		if (!plug.isNull())
+			viewportRestirSpatialResampleIterations = plug.asInt();
+
+		plug = frGlobalsNode.findPlug("restirMaxReservoirsPerCell");
+		if (!plug.isNull())
+			viewportRestirMaxReservoirsPerCell = plug.asInt(); 
+		
+		 plug = frGlobalsNode.findPlug("finalRender_ptDenoiser");
+		if (!plug.isNull())
+			productionPtDenoiser = plug.asInt();
+
+		plug = frGlobalsNode.findPlug("finalRender_materialCache");
+		if (!plug.isNull())
+			productionMaterialCache = plug.asBool();
+
+		plug = frGlobalsNode.findPlug("finalRender_restirGI");
+		if (!plug.isNull())
+			productionRestirGI = plug.asBool();
+
+		plug = frGlobalsNode.findPlug("finalRender_reservoirSampling");
+		if (!plug.isNull())
+			productionReservoirSampling = plug.asInt();
+
 		aovs.readFromGlobals(frGlobalsNode);
 
 		readDenoiserParameters(frGlobalsNode);
