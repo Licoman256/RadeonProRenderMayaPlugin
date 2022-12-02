@@ -1296,7 +1296,7 @@ void FireRenderGlobals::createViewportAttributes()
 	nAttr.setMax(1.0);
 	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::adaptiveThresholdViewport));
 
-	ViewportRenderAttributes::ptDenoiser = eAttr.create("ptDenoiser", "vpptd", PtDenoiserType::kSVGF, &status);
+	ViewportRenderAttributes::ptDenoiser = eAttr.create("ptDenoiser", "vpptd", PtDenoiserType::kNoPtDenoiser, &status);
 	eAttr.addField("None", PtDenoiserType::kNoPtDenoiser);
 	eAttr.addField("SVGF", PtDenoiserType::kSVGF);
 	eAttr.addField("ASVGF", PtDenoiserType::kASVGF);
