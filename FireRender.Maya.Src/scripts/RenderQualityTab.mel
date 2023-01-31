@@ -101,6 +101,14 @@ proc createFinalRenderQualityPart()
 	setParent ..;
 
 	frameLayout -label "Final Render Hybrid Params" -cll true -cl 0 fireRenderProductionRenderHybridParams;
+		attrControlGrp
+	        -label "useGmon"
+	        -attribute "RadeonProRenderGlobals.finalRender_useGmon";
+
+		attrControlGrp
+	        -label "giniCoeffGmon"
+	        -attribute "RadeonProRenderGlobals.finalRender_giniCoeffGmon";
+
 	    attrControlGrp
 	        -label "ptDenoiser"
 	        -attribute "RadeonProRenderGlobals.finalRender_ptDenoiser";
@@ -156,6 +164,14 @@ proc createViewportRenderQualityPart()
 	setParent ..;
 
 	frameLayout -label "Viewport Hybrid Params" -cll true -cl 0 fireRenderViewportHybridParams;
+		attrControlGrp
+	        -label "useGmon"
+	        -attribute "RadeonProRenderGlobals.useGmon";
+
+		attrControlGrp
+	        -label "giniCoeffGmon"
+	        -attribute "RadeonProRenderGlobals.giniCoeffGmon";
+
 	    attrControlGrp
 	        -label "ptDenoiser"
 	        -attribute "RadeonProRenderGlobals.ptDenoiser";

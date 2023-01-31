@@ -515,6 +515,14 @@ void FireRenderGlobalsData::readFromCurrentScene()
 		if (!plug.isNull())
 			reflectionCatcherEnabled = plug.asBool();
 
+		plug = frGlobalsNode.findPlug("useGmon");
+		if (!plug.isNull())
+			viewportUseGmon = plug.asBool();
+		 
+		plug = frGlobalsNode.findPlug("giniCoeffGmon");
+		if (!plug.isNull())  
+			viewportGiniCoeffGmon = plug.asFloat();
+
 		plug = frGlobalsNode.findPlug("ptDenoiser");
 		if (!plug.isNull())
 			viewportPtDenoiser = plug.asInt();
@@ -543,6 +551,14 @@ void FireRenderGlobalsData::readFromCurrentScene()
 		if (!plug.isNull())
 			viewportRestirMaxReservoirsPerCell = plug.asInt(); 
 		
+		plug = frGlobalsNode.findPlug("finalRender_useGmon");
+		if (!plug.isNull())
+			productionUseGmon = plug.asBool();
+
+		plug = frGlobalsNode.findPlug("finalRender_giniCoeffGmon");
+		if (!plug.isNull())
+			productionGiniCoeffGmon = plug.asFloat();
+
 		 plug = frGlobalsNode.findPlug("finalRender_ptDenoiser");
 		if (!plug.isNull())
 			productionPtDenoiser = plug.asInt();

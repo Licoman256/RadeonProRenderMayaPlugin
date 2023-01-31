@@ -190,6 +190,8 @@ namespace
         MObject tileRenderY;
 
 		// hybrid specific
+		MObject useGmon;
+		MObject giniCoeffGmon;
 		MObject ptDenoiser;
 		MObject materialCache;
 		MObject restirGI;
@@ -220,6 +222,8 @@ namespace
 		MObject adaptiveThresholdViewport;
 
 		// hybrid specific
+		MObject useGmon;
+		MObject giniCoeffGmon;
 		MObject ptDenoiser;
 		MObject materialCache;
 		MObject restirGI;
@@ -1296,6 +1300,16 @@ void FireRenderGlobals::createViewportAttributes()
 	nAttr.setMax(1.0);
 	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::adaptiveThresholdViewport));
 
+	ViewportRenderAttributes::useGmon = nAttr.create("useGmon", "vpugm", MFnNumericData::kBoolean, true);
+	MAKE_INPUT(nAttr);
+	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::useGmon));
+
+	ViewportRenderAttributes::giniCoeffGmon = nAttr.create("giniCoeffGmon", "vpgcg", MFnNumericData::kFloat, 0.5);
+	MAKE_INPUT(nAttr);
+	nAttr.setMin(0);
+	nAttr.setMax(1);
+	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::giniCoeffGmon));
+
 	ViewportRenderAttributes::ptDenoiser = eAttr.create("ptDenoiser", "vpptd", PtDenoiserType::kNoPtDenoiser, &status);
 	eAttr.addField("None", PtDenoiserType::kNoPtDenoiser);
 	eAttr.addField("SVGF", PtDenoiserType::kSVGF);
@@ -1338,6 +1352,16 @@ void FireRenderGlobals::createViewportAttributes()
 	nAttr.setMin(1);
 	nAttr.setSoftMax(512);
 	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::restirMaxReservoirsPerCell));
+
+	ViewportRenderAttributes::useGmon = nAttr.create("finalRender_useGmon", "frugm", MFnNumericData::kBoolean, true);
+	MAKE_INPUT(nAttr);
+	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::useGmon));
+
+	ViewportRenderAttributes::giniCoeffGmon = nAttr.create("finalRender_giniCoeffGmon", "frgcg", MFnNumericData::kFloat, 0.5);
+	MAKE_INPUT(nAttr);
+	nAttr.setMin(0);
+	nAttr.setMax(1);
+	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::giniCoeffGmon));
 
 	FinalRenderAttributes::ptDenoiser = eAttr.create("finalRender_ptDenoiser", "frptd", PtDenoiserType::kSVGF, &status);
 	eAttr.addField("None", PtDenoiserType::kNoPtDenoiser);

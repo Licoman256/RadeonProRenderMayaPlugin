@@ -250,6 +250,8 @@ public:
 	int viewportMaxReflectionRayDepth;
 
 	// hybrid viewport settings
+	bool viewportUseGmon;
+	float viewportGiniCoeffGmon;
 	int viewportPtDenoiser;
 	bool viewportMaterialCache;
 	bool viewportRestirGI;
@@ -259,6 +261,8 @@ public:
 	int viewportRestirMaxReservoirsPerCell;
 
 	// hybrid production render setting
+	bool productionUseGmon;
+	float productionGiniCoeffGmon;
 	int productionPtDenoiser;
 	bool productionMaterialCache;
 	bool productionRestirGI;
