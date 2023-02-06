@@ -100,30 +100,33 @@ proc createFinalRenderQualityPart()
 
 	setParent ..;
 
-	frameLayout -label "Final Render Hybrid Params" -cll true -cl 0 fireRenderProductionRenderHybridParams;
-		attrControlGrp
-	        -label "useGmon"
-	        -attribute "RadeonProRenderGlobals.finalRender_useGmon";
-
-		attrControlGrp
-	        -label "giniCoeffGmon"
-	        -attribute "RadeonProRenderGlobals.finalRender_giniCoeffGmon";
+	frameLayout -label "Final Render Advanced Hybrid Params" -cll true -cl 0 fireRenderProductionRenderHybridParams;
 
 	    attrControlGrp
-	        -label "ptDenoiser"
+	        -label "Pt Denoiser"
 	        -attribute "RadeonProRenderGlobals.finalRender_ptDenoiser";
 
 	    attrControlGrp
-	        -label "materialCache"
+	        -label "Material Cache"
 	        -attribute "RadeonProRenderGlobals.finalRender_materialCache";
 
 	    attrControlGrp
-	        -label "restirGI"
+	        -label "RestirGI"
 	        -attribute "RadeonProRenderGlobals.finalRender_restirGI";
 
 	    attrControlGrp
-	        -label "reservoirSampling"
+	        -label "Reservoir Sampling"
 	        -attribute "RadeonProRenderGlobals.finalRender_reservoirSampling";
+			
+		frameLayout -label "GMON" -cll false -cl 0;
+			attrControlGrp
+			    -label "Enable"
+			    -attribute "RadeonProRenderGlobals.finalRender_useGmon";
+   
+			attrControlGrp
+			    -label "GINI Coefficient"
+			    -attribute "RadeonProRenderGlobals.finalRender_giniCoeffGmon";
+
 	setParent ..;
 
 	UpdateProductionRenderSettingsUI();
@@ -162,43 +165,46 @@ proc createViewportRenderQualityPart()
 	        -label "Max Reflection Ray Depth"
 	        -attribute "RadeonProRenderGlobals.maxDepthGlossyViewport";
 	setParent ..;
+	setParent ..;
 
-	frameLayout -label "Viewport Hybrid Params" -cll true -cl 0 fireRenderViewportHybridParams;
-		attrControlGrp
-	        -label "useGmon"
-	        -attribute "RadeonProRenderGlobals.useGmon";
-
-		attrControlGrp
-	        -label "giniCoeffGmon"
-	        -attribute "RadeonProRenderGlobals.giniCoeffGmon";
-
+	frameLayout -label "Viewport Advanced Hybrid Params" -cll true -cl 0 fireRenderViewportHybridParams;
 	    attrControlGrp
-	        -label "ptDenoiser"
+	        -label "Pt Denoiser"
 	        -attribute "RadeonProRenderGlobals.ptDenoiser";
 
 	    attrControlGrp
-	        -label "materialCache"
+	        -label "Material Cache"
 	        -attribute "RadeonProRenderGlobals.materialCache";
 
-	    attrControlGrp
-	        -label "restirGI"
-	        -attribute "RadeonProRenderGlobals.restirGI";
+		frameLayout -label "Restir" -cll false -cl 0;
+			attrControlGrp
+			    -label "RestirGI"
+			    -attribute "RadeonProRenderGlobals.restirGI";
+			
+			attrControlGrp
+			    -label "RestirGI Bias Correction"
+			    -attribute "RadeonProRenderGlobals.restirGIBiasCorrection";
+			
+			attrControlGrp
+			    -label "Reservoir Sampling"
+			    -attribute "RadeonProRenderGlobals.reservoirSampling";
 
-	    attrControlGrp
-	        -label "restirGIBiasCorrection"
-	        -attribute "RadeonProRenderGlobals.restirGIBiasCorrection";
+			attrControlGrp
+			    -label "Spatial Resample Iterations"
+			    -attribute "RadeonProRenderGlobals.restirSpatialResampleIterations";
 
-	    attrControlGrp
-	        -label "reservoirSampling"
-	        -attribute "RadeonProRenderGlobals.reservoirSampling";
+			attrControlGrp
+			    -label "Max Reservoirs Per Cell"
+			    -attribute "RadeonProRenderGlobals.restirMaxReservoirsPerCell";
 
-	    attrControlGrp
-	        -label "restirSpatialResampleIterations"
-	        -attribute "RadeonProRenderGlobals.restirSpatialResampleIterations";
-
-	    attrControlGrp
-	        -label "restirMaxReservoirsPerCell"
-	        -attribute "RadeonProRenderGlobals.restirMaxReservoirsPerCell";
+		frameLayout -label "GMON" -cll false -cl 0;
+			attrControlGrp
+			    -label "Enable"
+			    -attribute "RadeonProRenderGlobals.finalRender_useGmon";
+   
+			attrControlGrp
+			    -label "GINI Coefficient"
+			    -attribute "RadeonProRenderGlobals.finalRender_giniCoeffGmon";
 	setParent ..;
 
 	UpdateViewportSettingsUI();
