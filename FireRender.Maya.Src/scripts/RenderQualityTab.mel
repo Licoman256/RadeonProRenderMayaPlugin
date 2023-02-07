@@ -20,7 +20,7 @@ global proc UpdateProductionRenderSettingsUI()
 	int $type = `getAttr RadeonProRenderGlobals.renderQualityFinalRender`;
 	int $isHybrid = $type != 0;
 
-	frameLayout -edit -visible ($isHybrid) fireRenderProductionRenderHybridParams;
+	frameLayout -edit -enable ($isHybrid) fireRenderProductionRenderHybridParams;
 }
 
 proc createFinalRenderQualityPart()
@@ -117,7 +117,7 @@ proc createFinalRenderQualityPart()
 	    attrControlGrp
 	        -label "Reservoir Sampling"
 	        -attribute "RadeonProRenderGlobals.finalRender_reservoirSampling";
-			
+		
 		frameLayout -label "GMON" -cll false -cl 0;
 			attrControlGrp
 			    -label "Enable"
@@ -126,9 +126,9 @@ proc createFinalRenderQualityPart()
 			attrControlGrp
 			    -label "GINI Coefficient"
 			    -attribute "RadeonProRenderGlobals.finalRender_giniCoeffGmon";
-
-	setParent ..;
-
+		setParent ..;
+		setParent ..;
+	
 	UpdateProductionRenderSettingsUI();
 }
 
@@ -137,7 +137,7 @@ global proc UpdateViewportSettingsUI()
 	int $type = `getAttr RadeonProRenderGlobals.renderQualityViewport`;
 	int $isHybrid = $type != 4;
 
-	frameLayout -edit -visible ($isHybrid) fireRenderViewportHybridParams;
+	frameLayout -edit -enable ($isHybrid) fireRenderViewportHybridParams;
 }
 
 proc createViewportRenderQualityPart()
@@ -164,7 +164,6 @@ proc createViewportRenderQualityPart()
 	    attrControlGrp
 	        -label "Max Reflection Ray Depth"
 	        -attribute "RadeonProRenderGlobals.maxDepthGlossyViewport";
-	setParent ..;
 	setParent ..;
 
 	frameLayout -label "Viewport Advanced Hybrid Params" -cll true -cl 0 fireRenderViewportHybridParams;
@@ -216,11 +215,11 @@ global proc createQualityTab()
 	scrollLayout -w 375 -horizontalScrollBarThickness 0 fireRenderQualityScrollLayout;
 	columnLayout -w 375 -adjustableColumn true fireRenderTabColumn;
 
-	frameLayout -label "Engine:" -cll true -cl 0 fireRenderTahoeEngineFrame;
-		attrControlGrp
-		    -label "Render Engine:"
-		     -attribute "RadeonProRenderGlobals.renderVersion";
-	setParent ..;
+	//frameLayout -label "Engine:" -cll true -cl 0 fireRenderTahoeEngineFrame;
+	//	attrControlGrp
+	//	    -label "Render Engine:"
+	//	     -attribute "RadeonProRenderGlobals.renderVersion";
+	//setParent ..;
 
 
 
