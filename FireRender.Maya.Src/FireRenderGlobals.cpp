@@ -1350,7 +1350,7 @@ void FireRenderGlobals::createViewportAttributes()
 	ViewportRenderAttributes::restirMaxReservoirsPerCell = nAttr.create("restirMaxReservoirsPerCell", "vprmr", MFnNumericData::kInt, 128, &status);
 	MAKE_INPUT(nAttr);
 	nAttr.setMin(1);
-	nAttr.setSoftMax(512);
+	nAttr.setMax(512);
 	CHECK_MSTATUS(addAttribute(ViewportRenderAttributes::restirMaxReservoirsPerCell));
 
 	ViewportRenderAttributes::useGmon = nAttr.create("finalRender_useGmon", "frugm", MFnNumericData::kBoolean, true);

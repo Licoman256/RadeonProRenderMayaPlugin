@@ -199,11 +199,11 @@ proc createViewportRenderQualityPart()
 		frameLayout -label "GMON" -cll false -cl 0;
 			attrControlGrp
 			    -label "Enable"
-			    -attribute "RadeonProRenderGlobals.finalRender_useGmon";
+			    -attribute "RadeonProRenderGlobals.useGmon";
    
 			attrControlGrp
 			    -label "GINI Coefficient"
-			    -attribute "RadeonProRenderGlobals.finalRender_giniCoeffGmon";
+			    -attribute "RadeonProRenderGlobals.giniCoeffGmon";
 	setParent ..;
 
 	UpdateViewportSettingsUI();
