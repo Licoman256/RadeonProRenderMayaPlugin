@@ -71,7 +71,8 @@ rpr_int HybridProContext::CreateContextInternal(rpr_creation_flags createFlags, 
 	{
 		createFlags = createFlags & ~RPR_CREATION_FLAGS_ENABLE_CPU;
 		createFlags = createFlags | RPR_CREATION_FLAGS_ENABLE_GPU0;
-		MGlobal::displayError("CPU mode not supported for HybridPro. Falling back to GPU.");
+		MGlobal::displayWarning("CPU mode not supported for HybridPro. Falling back to GPU.");
+		MGlobal::displayWarning("If render stamp is enabled, please change render device to GPU");
 	}
 
 	std::vector<rpr_context_properties> ctxProperties;
