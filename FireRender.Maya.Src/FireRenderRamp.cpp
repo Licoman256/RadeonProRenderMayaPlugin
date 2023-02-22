@@ -22,6 +22,8 @@ namespace
 {
 	namespace Attribute
 	{
+		MObject	uv;
+		MObject	uvSize;
 		MObject rampInterpolationMode;
 		MObject rampUVType;
 		MObject inputRamp;
@@ -33,8 +35,17 @@ namespace
 MStatus FireMaya::RPRRamp::initialize()
 {
 	MStatus status;
-
+	MFnNumericAttribute nAttr;
 	MFnEnumAttribute eAttr;
+
+	Attribute::uv = nAttr.create("uvCoord", "uv", MFnNumericData::k2Float);
+	MAKE_INPUT(nAttr);
+	status = MPxNode::addAttribute(Attribute::uv);
+	// Note: we are not using this, but we have to have it to support classification of this node as a texture2D in Maya:
+	Attribute::uvSize = nAttr.create("uvFilterSize", "fs", MFnNumericData::k2Float);
+	MAKE_INPUT(nAttr);
+	status = MPxNode::addAttribute(Attribute::uvSize);
+
 	Attribute::rampInterpolationMode = eAttr.create("rampInterpolationMode", "rinm", frw::InterpolationModeLinear);
 	eAttr.addField("None", frw::InterpolationModeNone);
 	eAttr.addField("Linear", frw::InterpolationModeLinear);
@@ -57,7 +68,6 @@ MStatus FireMaya::RPRRamp::initialize()
 	status = MPxNode::addAttribute(Attribute::inputRamp);
 	CHECK_MSTATUS(status);
 
-	MFnNumericAttribute nAttr;
 	Attribute::output = nAttr.createPoint("out", "rout");
 	MAKE_OUTPUT(nAttr);
 	status = addAttribute(Attribute::output);
@@ -68,6 +78,10 @@ MStatus FireMaya::RPRRamp::initialize()
 	status = attributeAffects(Attribute::rampInterpolationMode, Attribute::output);
 	CHECK_MSTATUS(status);
 	status = attributeAffects(Attribute::rampUVType, Attribute::output);
+	CHECK_MSTATUS(status);
+	status = attributeAffects(Attribute::uv, Attribute::output);
+	CHECK_MSTATUS(status);
+	status = attributeAffects(Attribute::uvSize, Attribute::output);
 	CHECK_MSTATUS(status);
 
 	return MS::kSuccess;
