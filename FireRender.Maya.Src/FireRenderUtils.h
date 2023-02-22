@@ -1009,6 +1009,10 @@ bool SaveCtrlPoints(
 
 	// ensure correct input
 	unsigned int length = dataVals.length();
+	if (!length)
+	{
+		return false;
+	}
 	if ((length != positions.length()) || 
 		(length != interps.length()) || 
 		(length != indexes.length())
