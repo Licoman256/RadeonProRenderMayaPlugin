@@ -2076,7 +2076,7 @@ frw::Value FireMaya::Scope::GetConnectedValue(const MPlug& plug) const
 					{
 						if (parent.child(i) == p)
 						{
-							idx = (int)i;
+							idx = static_cast<int>(i);
 							break;
 						}
 					}

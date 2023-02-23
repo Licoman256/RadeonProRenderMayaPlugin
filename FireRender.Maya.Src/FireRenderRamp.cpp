@@ -284,8 +284,11 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 		rampType = static_cast<RampUVType>(temp);
 
 	frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
-	rampNode.SetLookup(lookupTree);
+	
+	frw::Value conVal = scope.GetConnectedValue(shaderNode.findPlug(Attribute::uv, false));
 
+	frw::ArithmeticNode multipRes(scope.MaterialSystem(), frw::OperatorMultiply, lookupTree, conVal);
+	rampNode.SetLookup(multipRes);
 	return rampNode;
 }
 
