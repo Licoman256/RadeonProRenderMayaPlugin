@@ -1009,7 +1009,7 @@ bool SaveCtrlPoints(
 
 	// ensure correct input
 	unsigned int length = dataVals.length();
-	if (!length)
+	if (length == 0)
 	{
 		return false;
 	}
