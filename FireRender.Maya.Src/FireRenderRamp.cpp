@@ -33,8 +33,8 @@ namespace
 MStatus FireMaya::RPRRamp::initialize()
 {
 	MStatus status;
-	MFnEnumAttribute eAttr;
 
+	MFnEnumAttribute eAttr;
 	Attribute::rampInterpolationMode = eAttr.create("rampInterpolationMode", "rinm", frw::InterpolationModeLinear);
 	eAttr.addField("None", frw::InterpolationModeNone);
 	eAttr.addField("Linear", frw::InterpolationModeLinear);
@@ -271,6 +271,7 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 
 	frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
 	rampNode.SetLookup(lookupTree);
+
 	return rampNode;
 }
 
