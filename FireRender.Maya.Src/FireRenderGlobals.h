@@ -87,12 +87,12 @@ public:
 		kASVGF
 	};
 
-	enum RestirGIBiasCorrection {
-		kNoBiasCorrection = 0,
-		kUniformWeights,
-		kStochasticMIS,
-		kDeterministicMIS
-	};
+	//enum RestirGIBiasCorrection {
+	//	kNoBiasCorrection = 0,
+	//	kUniformWeights,
+	//	kStochasticMIS,
+	//	kDeterministicMIS
+	//};
 
 	enum ReservoirSampling {
 		kDisabled = 0,

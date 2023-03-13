@@ -110,13 +110,13 @@ proc createFinalRenderQualityPart()
 	        -label "Material Cache"
 	        -attribute "RadeonProRenderGlobals.finalRender_materialCache";
 
-	    attrControlGrp
-	        -label "RestirGI"
-	        -attribute "RadeonProRenderGlobals.finalRender_restirGI";
-
-	    attrControlGrp
-	        -label "Reservoir Sampling"
-	        -attribute "RadeonProRenderGlobals.finalRender_reservoirSampling";
+	    //attrControlGrp
+	    //    -label "RestirGI"
+	    //    -attribute "RadeonProRenderGlobals.finalRender_restirGI";
+		//
+	    //attrControlGrp
+	    //    -label "Reservoir Sampling"
+	    //    -attribute "RadeonProRenderGlobals.finalRender_reservoirSampling";
 		
 		frameLayout -label "GMON" -cll false -cl 0;
 			attrControlGrp
@@ -175,26 +175,26 @@ proc createViewportRenderQualityPart()
 	        -label "Material Cache"
 	        -attribute "RadeonProRenderGlobals.materialCache";
 
-		frameLayout -label "Restir" -cll false -cl 0;
-			attrControlGrp
-			    -label "RestirGI"
-			    -attribute "RadeonProRenderGlobals.restirGI";
-			
-			attrControlGrp
-			    -label "RestirGI Bias Correction"
-			    -attribute "RadeonProRenderGlobals.restirGIBiasCorrection";
-			
-			attrControlGrp
-			    -label "Reservoir Sampling"
-			    -attribute "RadeonProRenderGlobals.reservoirSampling";
-
-			attrControlGrp
-			    -label "Spatial Resample Iterations"
-			    -attribute "RadeonProRenderGlobals.restirSpatialResampleIterations";
-
-			attrControlGrp
-			    -label "Max Reservoirs Per Cell"
-			    -attribute "RadeonProRenderGlobals.restirMaxReservoirsPerCell";
+		//frameLayout -label "Restir" -cll false -cl 0;
+		//	attrControlGrp
+		//	    -label "RestirGI"
+		//	    -attribute "RadeonProRenderGlobals.restirGI";
+		//	
+		//	attrControlGrp
+		//	    -label "RestirGI Bias Correction"
+		//	    -attribute "RadeonProRenderGlobals.restirGIBiasCorrection";
+		//	
+		//	attrControlGrp
+		//	    -label "Reservoir Sampling"
+		//	    -attribute "RadeonProRenderGlobals.reservoirSampling";
+		//
+		//	attrControlGrp
+		//	    -label "Spatial Resample Iterations"
+		//	    -attribute "RadeonProRenderGlobals.restirSpatialResampleIterations";
+		//
+		//	attrControlGrp
+		//	    -label "Max Reservoirs Per Cell"
+		//	    -attribute "RadeonProRenderGlobals.restirMaxReservoirsPerCell";
 
 		frameLayout -label "GMON" -cll false -cl 0;
 			attrControlGrp

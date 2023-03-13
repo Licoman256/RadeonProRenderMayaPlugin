@@ -150,20 +150,20 @@ void HybridProContext::setupContextHybridParams(const FireRenderGlobalsData& fir
 		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_MATERIAL_CACHE, fireRenderGlobalsData.viewportMaterialCache);
 		checkStatus(frstatus);
 		
-		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_GI, fireRenderGlobalsData.viewportRestirGI);
-		checkStatus(frstatus);
-		
-		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_GI_BIAS_CORRECTION, fireRenderGlobalsData.viewportRestirGIBiasCorrection);
-		checkStatus(frstatus);
-		
-		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESERVOIR_SAMPLING, fireRenderGlobalsData.viewportReservoirSampling);
-		checkStatus(frstatus);
-
-		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_SPATIAL_RESAMPLE_ITERATIONS, fireRenderGlobalsData.viewportRestirSpatialResampleIterations);
-		checkStatus(frstatus);
-
-		frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_MAX_RESERVOIRS_PER_CELL, fireRenderGlobalsData.viewportRestirMaxReservoirsPerCell);
-		checkStatus(frstatus);
+		//frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_GI, fireRenderGlobalsData.viewportRestirGI);
+		//checkStatus(frstatus);
+		//
+		//frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_GI_BIAS_CORRECTION, fireRenderGlobalsData.viewportRestirGIBiasCorrection);
+		//checkStatus(frstatus);
+		//
+		//frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESERVOIR_SAMPLING, fireRenderGlobalsData.viewportReservoirSampling);
+		//checkStatus(frstatus);
+		//
+		//frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_SPATIAL_RESAMPLE_ITERATIONS, fireRenderGlobalsData.viewportRestirSpatialResampleIterations);
+		//checkStatus(frstatus);
+		//
+		//frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_RESTIR_MAX_RESERVOIRS_PER_CELL, fireRenderGlobalsData.viewportRestirMaxReservoirsPerCell);
+		//checkStatus(frstatus);
 
 	}
 	else

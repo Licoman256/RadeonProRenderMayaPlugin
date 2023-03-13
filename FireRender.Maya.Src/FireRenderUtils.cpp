@@ -531,25 +531,25 @@ void FireRenderGlobalsData::readFromCurrentScene()
 		if (!plug.isNull())
 			viewportMaterialCache = plug.asBool();
 
-		plug = frGlobalsNode.findPlug("restirGI");
-		if (!plug.isNull())
-			viewportRestirGI = plug.asBool();
-
-		plug = frGlobalsNode.findPlug("restirGIBiasCorrection");
-		if (!plug.isNull())
-			viewportRestirGIBiasCorrection = plug.asInt();
-
-		plug = frGlobalsNode.findPlug("reservoirSampling");
-		if (!plug.isNull())
-			viewportReservoirSampling = plug.asInt();
-
-		plug = frGlobalsNode.findPlug("restirSpatialResampleIterations");
-		if (!plug.isNull())
-			viewportRestirSpatialResampleIterations = plug.asInt();
-
-		plug = frGlobalsNode.findPlug("restirMaxReservoirsPerCell");
-		if (!plug.isNull())
-			viewportRestirMaxReservoirsPerCell = plug.asInt(); 
+		//plug = frGlobalsNode.findPlug("restirGI");
+		//if (!plug.isNull())
+		//	viewportRestirGI = plug.asBool();
+		//
+		//plug = frGlobalsNode.findPlug("restirGIBiasCorrection");
+		//if (!plug.isNull())
+		//	viewportRestirGIBiasCorrection = plug.asInt();
+		//
+		//plug = frGlobalsNode.findPlug("reservoirSampling");
+		//if (!plug.isNull())
+		//	viewportReservoirSampling = plug.asInt();
+		//
+		//plug = frGlobalsNode.findPlug("restirSpatialResampleIterations");
+		//if (!plug.isNull())
+		//	viewportRestirSpatialResampleIterations = plug.asInt();
+		//
+		//plug = frGlobalsNode.findPlug("restirMaxReservoirsPerCell");
+		//if (!plug.isNull())
+		//	viewportRestirMaxReservoirsPerCell = plug.asInt(); 
 		
 		plug = frGlobalsNode.findPlug("finalRender_useGmon");
 		if (!plug.isNull())
@@ -567,9 +567,9 @@ void FireRenderGlobalsData::readFromCurrentScene()
 		if (!plug.isNull())
 			productionMaterialCache = plug.asBool();
 
-		plug = frGlobalsNode.findPlug("finalRender_restirGI");
-		if (!plug.isNull())
-			productionRestirGI = plug.asBool();
+		//plug = frGlobalsNode.findPlug("finalRender_restirGI");
+		//if (!plug.isNull())
+		//	productionRestirGI = plug.asBool();
 
 		plug = frGlobalsNode.findPlug("finalRender_reservoirSampling");
 		if (!plug.isNull())
