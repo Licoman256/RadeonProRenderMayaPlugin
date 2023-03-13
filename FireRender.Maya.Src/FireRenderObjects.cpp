@@ -2463,11 +2463,21 @@ void FireRenderEnvLight::Freshen(bool shouldCalculateHash)
 			context()->iblLight = this;
 			context()->iblTransformObject = dagPath.transform();
 			//
+			bool ambLight = m.light.IsAmbientLight();
+			bool display = GetPlugValue("display", true);
 
-			if (!GetPlugValue("display", true) || m.light.IsAmbientLight())
+			// !GetPlugValue("display", true) || causes ibl to render black when exporting a scene
+			if (m.light.IsAmbientLight())
 			{
 				m.bgOverride = Context().CreateEnvironmentLight();
 				m.bgOverride.SetImage(frw::Image(Context(), 0, 0, 0));
+			}
+			rpr_context rpr_con = context()->context();
+			if (rpr_con != nullptr)
+			{
+				rprContextSetParameterByKey1u(rpr_con, RPR_CONTEXT_IBL_DISPLAY, GetPlugValue("display", true));
+			} else {
+				DebugPrint("Error. rpr_context is nullptr while setting RPR_CONTEXT_IBL_DISPLAY");
 			}
 
 			attachToScene();	// normal!
