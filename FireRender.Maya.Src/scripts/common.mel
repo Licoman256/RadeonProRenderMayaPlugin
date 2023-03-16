@@ -233,10 +233,10 @@ global proc AERPRCreateDefaultRampColors( string $nodeName, string $colorSrcStri
 
 	// change this to match what Maya creates as default value for ramp
 	// proceed if the point sits at the beggining and is black
-	if($pos      != 0 ||
-	   $color[0] != 0 ||
-	   $color[1] != 0 || 
-	   $color[2] != 0)
+	if($pos      != 0.0 ||
+	   $color[0] != 0.0 ||
+	   $color[1] != 0.0 || 
+	   $color[2] != 0.0)
 	{
 		return;
 	}
@@ -280,8 +280,8 @@ global proc AERPRCreateDefaultRampFloats( string $nodeName, string $floatSrcStri
 
 	// change this to match what Maya creates as default value for ramp
 	// proceed if the point sits at the beggining and is black
-	if($pos != 0 ||
-	   $val != 0)
+	if($pos != 0.0 ||
+	   $val != 0.0)
 	{
 		return;
 	}
@@ -319,7 +319,6 @@ global proc float[] RPRPrepareArray(string $sourceString)
 	return $res;
 }
 
-		 // bool
 global proc int RPRShouldProceed(string $nodeName, string $rampName)
 {
 	// get the number of points
