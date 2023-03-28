@@ -149,6 +149,12 @@ global proc albedoGridSelectNew( string $attrName, string $listAttrName )
 global proc albedoGridSelectReplace( string $attrName, string $listAttrName )
 {	
 	vdbGridSelectReplace($attrName, $listAttrName, "albedoGridList");
+	$isselectd = `textScrollList -q -selectItem albedoGridList`;
+	if (size($isselectd) == 0)
+	{
+		textScrollList -e -selectIndexedItem 1 albedoGridList;
+		onAlbedoGridSelectClicked();
+	}
 }
 
 global proc vdbGridSelectReplace(string $attrName, string $listAttrName, string $widgetName)
@@ -252,6 +258,12 @@ global proc emissionGridSelectNew( string $attrName, string $listAttrName )
 global proc emissionGridSelectReplace( string $attrName, string $listAttrName )
 {	
 	vdbGridSelectReplace($attrName, $listAttrName, "emissionGridList");
+	$isselectd = `textScrollList -q -selectItem emissionGridList`;
+	if (size($isselectd) == 0)
+	{
+		textScrollList -e -selectIndexedItem 1 emissionGridList;
+		onEmissionGridSelectClicked();
+	}
 }
 
 global proc onEmissionGridSelectClicked()
