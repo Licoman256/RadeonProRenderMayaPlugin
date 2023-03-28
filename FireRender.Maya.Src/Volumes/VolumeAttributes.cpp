@@ -22,6 +22,7 @@ limitations under the License.
 #include <maya/MArrayDataBuilder.h>
 #include <maya/MAnimControl.h>
 #include <maya/MTime.h>
+#include <maya/MSelectionList.h>
 
 #pragma warning(push)
 #pragma warning(disable : 4244)
