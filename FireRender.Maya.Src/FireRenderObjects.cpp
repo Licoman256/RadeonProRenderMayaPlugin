@@ -2475,14 +2475,32 @@ void FireRenderEnvLight::Freshen(bool shouldCalculateHash)
 			if (rpr_con != nullptr)
 			{
 				MPlug displayPlug = dagNode.findPlug("display");
-
+				
 				if (!displayPlug.isNull())
 				{
-					rprContextSetParameterByKey1u(rpr_con, RPR_CONTEXT_IBL_DISPLAY, displayPlug.asBool());
+					context()->iblDisplay = displayPlug.asBool();
 				}
 				
 			} else {
-				DebugPrint("Error. rpr_context is nullptr while setting RPR_CONTEXT_IBL_DISPLAY");
+				DebugPrint("Error. rpr_context is nullptr while setting iblDisplay");
+			}
+
+			// SC and RC
+			// we should disable built-in shadow catcher composite
+			FireRenderGlobalsData fireRenderGlobalsData = context()->Globals();
+			context()->GetContext().SetParameter(RPR_CONTEXT_SHADOW_CATCHER_BAKING, fireRenderGlobalsData.shadowCatcherEnabled ? 0 : 1);
+			// we should disable IBL visibility to correctly composite reflection catcher
+
+			if (fireRenderGlobalsData.reflectionCatcherEnabled)
+			{
+				context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, 0);
+			}
+			else
+			{
+				if (fireRenderGlobalsData.shadowCatcherEnabled)
+				{
+					context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, context()->iblDisplay);
+				}
 			}
 
 			attachToScene();	// normal!

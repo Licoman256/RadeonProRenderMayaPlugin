@@ -320,14 +320,6 @@ void NorthStarContext::setupContextPostSceneCreation(const FireRenderGlobalsData
 	frstatus = rprContextSetParameterByKeyString(frcontext, RPR_CONTEXT_TEXTURE_CACHE_PATH, fireRenderGlobalsData.textureCachePath.asChar());
 	checkStatus(frstatus);
 
-	// SC and RC
-	// we should disable built-in shadow catcher composite
-	frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_SHADOW_CATCHER_BAKING, fireRenderGlobalsData.shadowCatcherEnabled ? 0 : 1);
-	checkStatus(frstatus);
-	// we should disable IBL visibility to correctly composite reflection catcher
-	frstatus = rprContextSetParameterByKey1u(frcontext, RPR_CONTEXT_IBL_DISPLAY, fireRenderGlobalsData.reflectionCatcherEnabled ? 0 : 1);
-	checkStatus(frstatus);
-
 	// OCIO
 	const std::map<std::string, std::string>& eVars = EnvironmentVarsWrapper<char>::GetEnvVarsTable();
 	auto envOCIOPath = eVars.find("OCIO");
@@ -607,6 +599,7 @@ void NorthStarContext::OnPreRender()
 	{
 		SetPreviewMode(previewModeLevel);
 	}
+
 }
 
 int NorthStarContext::GetAOVMaxValue()
