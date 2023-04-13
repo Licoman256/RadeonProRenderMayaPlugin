@@ -278,17 +278,18 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	if (rampPlug.isNull())
 		return frw::Value();
 
-	temp = 1;
-	RampUVType rampType = VRamp;
-	if (MStatus::kSuccess == rampPlug.getValue(temp))
-		rampType = static_cast<RampUVType>(temp);
+	int type = rampPlug.asInt();
+	//RampUVType rampType = static_cast<RampUVType>(type);
+	//frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
 
-	frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
-	
-	frw::Value conVal = scope.GetConnectedValue(shaderNode.findPlug(Attribute::uv, false));
+	frw::Value uv = scope.GetConnectedValue(shaderNode.findPlug(Attribute::uv, false));
+	//TranslateUvCoords(type, uv);
 
-	frw::ArithmeticNode multipRes(scope.MaterialSystem(), frw::OperatorMultiply, lookupTree, conVal);
-	rampNode.SetLookup(multipRes);
+	//frw::ArithmeticNode multipRes(scope.MaterialSystem(), frw::OperatorMultiply, lookupTree, uv);
+
+	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uv, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	rampNode.SetValue(RPR_MATERIAL_INPUT_UV, uvMod);
+	//rampNode.SetLookup(multipRes);
 	return rampNode;
 }
 
