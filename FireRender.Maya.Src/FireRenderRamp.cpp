@@ -286,8 +286,8 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	//TranslateUvCoords(type, uv);
 
 	//frw::ArithmeticNode multipRes(scope.MaterialSystem(), frw::OperatorMultiply, lookupTree, uv);
-
-	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uv, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	frw::ArithmeticNode uvAbs(scope.MaterialSystem(), frw::OperatorAbs, uv);
+	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uvAbs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
 	rampNode.SetValue(RPR_MATERIAL_INPUT_UV, uvMod);
 	//rampNode.SetLookup(multipRes);
 	return rampNode;
