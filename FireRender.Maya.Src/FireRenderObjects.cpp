@@ -2497,10 +2497,7 @@ void FireRenderEnvLight::Freshen(bool shouldCalculateHash)
 			}
 			else
 			{
-				if (fireRenderGlobalsData.shadowCatcherEnabled)
-				{
-					context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, context()->iblDisplay);
-				}
+				context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, context()->iblDisplay);
 			}
 
 			attachToScene();	// normal!
