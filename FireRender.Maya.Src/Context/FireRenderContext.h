@@ -895,7 +895,7 @@ private:
 public:
 	FireRenderEnvLight *iblLight = nullptr;
 	MObject iblTransformObject = MObject();
-	bool iblDisplay = false;
+	bool iblDisplay = true;
 
 	FireRenderSky *skyLight = nullptr;
 	MObject skyTransformObject = MObject();
