@@ -193,6 +193,29 @@ bool GetConnectedCtrlPointsObjects(MPlug& rampPlug, std::vector<RampCtrlPointDat
 	assert(success);
 	assert(currCtrlPointIt == rampCtrlPoints.end());
 
+	// add control points to the beginning and the end as copies of neighboring points to remove black edges
+	if (rampCtrlPoints.front().position > FLT_EPSILON)
+	{
+		rampCtrlPoints.emplace_back();
+		const auto& first = rampCtrlPoints.begin();
+		auto& ctrlPointRef = rampCtrlPoints.back();
+		ctrlPointRef.ctrlPointData = first->ctrlPointData;
+		ctrlPointRef.method = first->method;
+		ctrlPointRef.position = 0.0f;
+		ctrlPointRef.index = 99; // this value is irrelevant
+		std::rotate(rampCtrlPoints.begin(), rampCtrlPoints.end() - 1, rampCtrlPoints.end());
+	}
+
+	if ((1.0f - rampCtrlPoints.back().position) > FLT_EPSILON)
+	{
+		rampCtrlPoints.emplace_back();
+		const auto& last = rampCtrlPoints.end() - 2;
+		auto& ctrlPointRef = rampCtrlPoints.back();
+		ctrlPointRef.ctrlPointData = last->ctrlPointData;
+		ctrlPointRef.method = last->method;
+		ctrlPointRef.position = 1.0f;
+		ctrlPointRef.index = 100; // this value is irrelevant
+	}
 	return success;
 }
 
