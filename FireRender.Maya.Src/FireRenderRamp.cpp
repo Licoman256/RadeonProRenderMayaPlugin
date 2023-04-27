@@ -194,6 +194,7 @@ bool GetConnectedCtrlPointsObjects(MPlug& rampPlug, std::vector<RampCtrlPointDat
 	assert(currCtrlPointIt == rampCtrlPoints.end());
 
 	// add control points to the beginning and the end as copies of neighboring points to remove black edges
+	// needed for rpr ramp internal logic
 	if (rampCtrlPoints.front().position > FLT_EPSILON)
 	{
 		rampCtrlPoints.emplace_back();
@@ -289,6 +290,7 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 		return frw::Value();
 
 	// - read and process node ramp control point values
+	// we also add up to 2 points at the begining and the end to remove black edges
 	bool success = GetConnectedCtrlPointsObjects(ctrlPointsPlug, outRampCtrlPoints);
 	if (!success)
 		return frw::Value();
