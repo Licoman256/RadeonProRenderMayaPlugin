@@ -193,6 +193,12 @@ bool GetConnectedCtrlPointsObjects(MPlug& rampPlug, std::vector<RampCtrlPointDat
 	assert(success);
 	assert(currCtrlPointIt == rampCtrlPoints.end());
 
+	// sort values by position (maya returns control points in random order)
+	// we have to do it here since plugs cannot be sorted and if we sort out points before reading plugs, they might become misaligned
+	// instead of alligning them, we sort points only after reading all the plugs
+	std::sort(rampCtrlPoints.begin(), rampCtrlPoints.end(), [](auto first, auto second)->bool {
+		return (first.position < second.position); });
+
 	// add control points to the beginning and the end as copies of neighboring points to remove black edges
 	// needed for rpr ramp internal logic
 	if (rampCtrlPoints.front().position > FLT_EPSILON)
