@@ -2184,16 +2184,6 @@ PLType FireRenderPhysLight::GetPhysLightType(MObject node)
 
 void FireRenderLight::Freshen(bool shouldCalculateHash)
 {
-	// we should disable IBL visibility to correctly composite reflection catcher
-	FireRenderGlobalsData fireRenderGlobalsData = context()->Globals();
-	if (fireRenderGlobalsData.reflectionCatcherEnabled)
-	{
-		context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, 0);
-	}
-	else
-	{
-		context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, context()->iblDisplay);
-	}
 
 	if (ShouldUpdateTransformOnly())
 	{
@@ -2502,11 +2492,7 @@ void FireRenderEnvLight::Freshen(bool shouldCalculateHash)
 			context()->GetContext().SetParameter(RPR_CONTEXT_SHADOW_CATCHER_BAKING, fireRenderGlobalsData.shadowCatcherEnabled ? 0 : 1);
 			// we should disable IBL visibility to correctly composite reflection catcher
 
-			if (fireRenderGlobalsData.reflectionCatcherEnabled)
-			{
-				context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, 0);
-			}
-			else
+			if (!fireRenderGlobalsData.reflectionCatcherEnabled)
 			{
 				context()->GetContext().SetParameter(RPR_CONTEXT_IBL_DISPLAY, context()->iblDisplay);
 			}
