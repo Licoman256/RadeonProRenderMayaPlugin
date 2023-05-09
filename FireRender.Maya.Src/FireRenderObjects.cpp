@@ -2486,11 +2486,8 @@ void FireRenderEnvLight::Freshen(bool shouldCalculateHash)
 				DebugPrint("Error. rpr_context is nullptr while setting iblDisplay");
 			}
 
-			// SC and RC
-			// we should disable built-in shadow catcher composite
+			// set ibl_display to the checkbox value. Don't do it if reflection catcher is enabled
 			FireRenderGlobalsData fireRenderGlobalsData = context()->Globals();
-			context()->GetContext().SetParameter(RPR_CONTEXT_SHADOW_CATCHER_BAKING, fireRenderGlobalsData.shadowCatcherEnabled ? 0 : 1);
-			// we should disable IBL visibility to correctly composite reflection catcher
 
 			if (!fireRenderGlobalsData.reflectionCatcherEnabled)
 			{
