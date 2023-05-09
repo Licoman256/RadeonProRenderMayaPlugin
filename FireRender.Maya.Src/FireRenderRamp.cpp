@@ -273,16 +273,15 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	// create node
 	frw::RampNode rampNode(scope.MaterialSystem());
 
-	// process ramp parameters
-	frw::RampInterpolationMode mode = frw::InterpolationModeNone;
-
-	MPlug plug = shaderNode.findPlug(Attribute::rampInterpolationMode, false);
-	if (plug.isNull())
+	MPlug interpPlug = shaderNode.findPlug(Attribute::rampInterpolationMode, false);
+	if (interpPlug.isNull())
 		return frw::Value();
 
-	int temp = 0;
-	if (MStatus::kSuccess == plug.getValue(temp))
-		mode = static_cast<frw::RampInterpolationMode>(temp);
+	int type = interpPlug.asInt();
+
+	// process ramp parameters
+	frw::RampInterpolationMode mode = frw::InterpolationModeNone;
+	mode = static_cast<frw::RampInterpolationMode>(type);
 
 	rampNode.SetInterpolationMode(mode);
 
@@ -309,7 +308,7 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	if (rampPlug.isNull())
 		return frw::Value();
 
-	int type = rampPlug.asInt();
+	int uvtype = rampPlug.asInt();
 	//RampUVType rampType = static_cast<RampUVType>(type);
 	//frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
 
