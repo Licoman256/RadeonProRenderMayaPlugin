@@ -307,20 +307,46 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	MPlug rampPlug = shaderNode.findPlug(Attribute::rampUVType, false);
 	if (rampPlug.isNull())
 		return frw::Value();
-
-	int uvtype = rampPlug.asInt();
-	//RampUVType rampType = static_cast<RampUVType>(type);
-	//frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
+	int uvIntType = rampPlug.asInt();
 
 	frw::Value uv = scope.GetConnectedValue(shaderNode.findPlug(Attribute::uv, false));
-	//TranslateUvCoords(type, uv);
-
-	//frw::ArithmeticNode multipRes(scope.MaterialSystem(), frw::OperatorMultiply, lookupTree, uv);
-	frw::ArithmeticNode uvAbs(scope.MaterialSystem(), frw::OperatorAbs, uv);
+	frw::ArithmeticNode uvTransformed = ApplyUVType(scope, uv, uvIntType);
+	//frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
+	
+	frw::ArithmeticNode uvAbs(scope.MaterialSystem(), frw::OperatorAbs, uvTransformed);
 	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uvAbs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
 	rampNode.SetValue(RPR_MATERIAL_INPUT_UV, uvMod);
-	//rampNode.SetLookup(multipRes);
 	return rampNode;
+}
+
+frw::ArithmeticNode FireMaya::RPRRamp::ApplyUVType(const Scope& scope, frw::Value& source, int uvIntType) const {
+	RampUVType uvType = static_cast<RampUVType>(uvIntType);
+
+	switch (uvType)
+	{
+	case URamp:
+		return frw::ArithmeticNode(scope.MaterialSystem(), frw::OperatorSelectY, source);
+	case DiagonalRamp:
+	{
+		frw::ArithmeticNode arith_X(scope.MaterialSystem(), frw::OperatorSelectX, source);
+		frw::ArithmeticNode arith_Y(scope.MaterialSystem(), frw::OperatorSelectY, source);
+		frw::ArithmeticNode arith_1minusX(scope.MaterialSystem(), frw::OperatorSubtract, frw::Value(1.0f, 1.0f, 1.0f, 1.0f), arith_X);
+		frw::ArithmeticNode arith_add(scope.MaterialSystem(), frw::OperatorAdd, arith_1minusX, arith_Y);
+		frw::ArithmeticNode arith_div(scope.MaterialSystem(), frw::OperatorDivide, arith_add, frw::Value(2.0f, 2.0f, 2.0f, 2.0f));
+		return arith_div;
+	}
+	case CircularRamp:
+	{
+		frw::ArithmeticNode arith_XYminus05(scope.MaterialSystem(), frw::OperatorSubtract, source, frw::Value(0.5f, 0.5f, 0.0f, 0.0f));
+		frw::ArithmeticNode arith_dot(scope.MaterialSystem(), frw::OperatorDot, arith_XYminus05, arith_XYminus05);
+		frw::ArithmeticNode arith_sqrt(scope.MaterialSystem(), frw::OperatorPow, arith_dot, frw::Value(0.5f, 0.0f, 0.0f, 0.0f));
+		frw::ArithmeticNode arith_mul(scope.MaterialSystem(), frw::OperatorMultiply, arith_sqrt, frw::Value(2.0f, 0.0f, 0.0f, 0.0f));
+		return arith_mul;
+	}
+	default:
+		// VRamp
+		return frw::ArithmeticNode(scope.MaterialSystem(), frw::OperatorAdd, source);
+	}
 }
 
 void FireMaya::RPRRamp::postConstructor()
