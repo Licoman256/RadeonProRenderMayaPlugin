@@ -341,7 +341,7 @@ frw::ArithmeticNode FireMaya::RPRRamp::ApplyUVType(const Scope& scope, frw::Valu
 		frw::ArithmeticNode arith_dot(scope.MaterialSystem(), frw::OperatorDot, arith_XYminus05, arith_XYminus05);
 		frw::ArithmeticNode arith_sqrt(scope.MaterialSystem(), frw::OperatorPow, arith_dot, frw::Value(0.5f, 0.0f, 0.0f, 0.0f));
 		frw::ArithmeticNode arith_mul(scope.MaterialSystem(), frw::OperatorMultiply, arith_sqrt, frw::Value(2.0f, 0.0f, 0.0f, 0.0f));
-		frw::ArithmeticNode arith_min(scope.MaterialSystem(), frw::OperatorMin, arith_mul, frw::Value(1.0f, 1.0f, 1.0f, 0.0f));
+		frw::ArithmeticNode arith_min(scope.MaterialSystem(), frw::OperatorMin, arith_mul, frw::Value(0.99f, 0.99f, 0.99f, 0.0f));
 		return arith_min;
 	}
 	default:
