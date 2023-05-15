@@ -310,16 +310,17 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	int uvIntType = rampPlug.asInt();
 
 	frw::Value uv = scope.GetConnectedValue(shaderNode.findPlug(Attribute::uv, false));
-	frw::ArithmeticNode uvTransformed = ApplyUVType(scope, uv, uvIntType);
+	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uv, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	frw::ArithmeticNode uvTransformed = ApplyUVType(scope, uvMod, uvIntType);
 	//frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
 	
-	frw::ArithmeticNode uvAbs(scope.MaterialSystem(), frw::OperatorAbs, uvTransformed);
-	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uvAbs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
-	rampNode.SetValue(RPR_MATERIAL_INPUT_UV, uvMod);
+	frw::ArithmeticNode abs(scope.MaterialSystem(), frw::OperatorAbs, uvTransformed);
+	frw::ArithmeticNode mod(scope.MaterialSystem(), frw::OperatorMod, abs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	rampNode.SetValue(RPR_MATERIAL_INPUT_UV, mod);
 	return rampNode;
 }
 
-frw::ArithmeticNode FireMaya::RPRRamp::ApplyUVType(const Scope& scope, frw::Value& source, int uvIntType) const {
+frw::ArithmeticNode FireMaya::RPRRamp::ApplyUVType(const Scope& scope, frw::ArithmeticNode& source, int uvIntType) const {
 	RampUVType uvType = static_cast<RampUVType>(uvIntType);
 
 	switch (uvType)
