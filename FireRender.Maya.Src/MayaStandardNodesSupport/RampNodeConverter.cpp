@@ -192,7 +192,6 @@ frw::ArithmeticNode GetLookupForVRamp(const FireMaya::Scope& scope)
 
 	// to have proper return type
 	frw::ArithmeticNode bufferLookupV(scope.MaterialSystem(), frw::OperatorSelectY, lookupNode);
-	//frw::ArithmeticNode bufferLookupMulNode(scope.MaterialSystem(), frw::OperatorMultiply, bufferLookupV, frw::Value(1.0f, 1.0f, 1.0f));
 	return bufferLookupV;
 }
 
@@ -203,7 +202,6 @@ frw::ArithmeticNode GetLookupForURamp(const FireMaya::Scope& scope)
 
 	// to have proper return type
 	frw::ArithmeticNode bufferLookupU(scope.MaterialSystem(), frw::OperatorSelectX, lookupNode);
-	//frw::ArithmeticNode bufferLookupMulNode(scope.MaterialSystem(), frw::OperatorMultiply, bufferLookupU, frw::Value(1.0f, 1.0f, 1.0f));
 	return bufferLookupU;
 }
 

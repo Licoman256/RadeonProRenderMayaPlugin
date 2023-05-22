@@ -312,7 +312,6 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	frw::Value uv = scope.GetConnectedValue(shaderNode.findPlug(Attribute::uv, false));
 	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uv, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
 	frw::ArithmeticNode uvTransformed = ApplyUVType(scope, uvMod, uvIntType);
-	//frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
 	
 	frw::ArithmeticNode abs(scope.MaterialSystem(), frw::OperatorAbs, uvTransformed);
 	frw::ArithmeticNode mod(scope.MaterialSystem(), frw::OperatorMod, abs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
