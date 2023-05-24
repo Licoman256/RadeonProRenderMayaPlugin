@@ -1066,7 +1066,7 @@ bool SaveCtrlPoints(
 // function to grab ramp control points from maya Ramp
 // use this to get control points array from MPlug
 template <class MayaDataContainer, class valType>
-bool GetRampValues(MPlug& plug, std::vector<RampCtrlPoint<valType>>& out)
+bool GetRampValues(MPlug& plug, std::vector<RampCtrlPoint<valType>>& out, bool isRprRamp = false)
 {
 	// get ramp from plug
 	MRampAttribute valueRamp(plug);
@@ -1090,7 +1090,15 @@ bool GetRampValues(MPlug& plug, std::vector<RampCtrlPoint<valType>>& out)
 		return false;
 
 	// save data
-	return SaveCtrlPoints<MayaDataContainer, valType>(dataValues, positions, interps, indexes, out);
+	bool success = false;
+	success = SaveCtrlPoints<MayaDataContainer, valType>(dataValues, positions, interps, indexes, out);
+	// sorting might be needed for something, but is bad for rpr ramp. rpr ramp will be sorted later
+	if (!isRprRamp)
+	{
+		std::sort(out.begin(), out.end(), [](auto first, auto second)->bool {
+			return (first.position < second.position); });
+	}
+	return success;
 }
 
 template <typename MayaDataContainer>
