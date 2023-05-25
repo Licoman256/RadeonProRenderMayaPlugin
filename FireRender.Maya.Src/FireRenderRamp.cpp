@@ -290,7 +290,7 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	MPlug ctrlPointsPlug = shaderNode.findPlug(Attribute::inputRamp, false);
 
 	// - read simple ramp control point values
-	bool isRampParced = GetRampValues<MColorArray>(ctrlPointsPlug, outRampCtrlPoints, true);
+	bool isRampParced = GetRampValues<MColorArray>(ctrlPointsPlug, outRampCtrlPoints, false);
 	if (!isRampParced)
 		return frw::Value();
 
