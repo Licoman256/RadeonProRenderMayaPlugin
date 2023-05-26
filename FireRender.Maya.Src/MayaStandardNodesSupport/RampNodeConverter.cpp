@@ -342,35 +342,59 @@ void ArrangeBufferViaRampCtrlPoints(MObject& shaderNodeObject, const FireMaya::S
 	}
 }
 
+using CtrlPointDataT = std::tuple<MColor, MString, MObject>;
+using CtrlPointT = RampCtrlPoint<CtrlPointDataT>;
+
 frw::Value GetBufferSamplerConvertor(
 	MObject& shaderNodeObject, 
 	const FireMaya::Scope& scope,
 	RampUVType rampType)
 {
-	// the .colorEntryList property is a compound array attribute; it doesn't get a special function set. 
-	// And, confusingly, .colorEntryList is not an MRampAttribute, it's just a regular indexed compound attribute. 
-
-	const unsigned int bufferSize = 256; // same as in Blender
+	// create node
+	frw::RampNode rampNode(scope.MaterialSystem());
 
 	// extract values from ramp node ramp
 	std::vector<RampCtrlPoint<MColor>> rampCtrlPoints;
-	bool res = CreateCtrlPointsFromPlug<MColor>(shaderNodeObject, rampCtrlPoints);
-	if (!res)
+	MStatus status;
+	MFnDependencyNode fnRampObject(shaderNodeObject, &status);
+
+	// read input ramp
+	std::vector<CtrlPointT> outRampCtrlPoints;
+	MPlug ctrlPointsPlug = fnRampObject.findPlug("colorEntryList", &status);
+
+	// - read simple ramp control point values
+	bool isRampParced = GetRampValues<MColorArray>(ctrlPointsPlug, outRampCtrlPoints);
+	if (!isRampParced)
 		return frw::Value();
 
-	// create buffer node
-	frw::BufferNode bufferNode = CreateRPRRampNode(rampCtrlPoints, scope, bufferSize);
+	// - read and process node ramp control point values
+	bool success = GetConnectedCtrlPointsObjects(ctrlPointsPlug, outRampCtrlPoints);
+	if (!success)
+		return frw::Value();
 
-	// get arithmetic mul node tree for lookup
-	const auto& nodeTreeGeneratorImpl = m_rampGenerators.find(rampType);
-	assert(nodeTreeGeneratorImpl != m_rampGenerators.end());
-	frw::ArithmeticNode rampNodeTree = nodeTreeGeneratorImpl->second(scope);
-	frw::ArithmeticNode bufferLookupMulNode(scope.MaterialSystem(), frw::OperatorMultiply, rampNodeTree, frw::Value(bufferSize, bufferSize, bufferSize));
+	// - translate control points to RPR representation
+	TranslateControlPoints(rampNode, scope, outRampCtrlPoints);
 
-	// connect created lookup to buffer (this is needed to make buffer node work in RPR)
-	bufferNode.SetUV(bufferLookupMulNode);
+	frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
+	rampNode.SetLookup(lookupTree);
 
-	return bufferNode;
+	return rampNode;
+
+	//MPlug ctrlPointsPlug = shaderNode.findPlug(Attribute::inputRamp, false);
+	//if (!res)
+	//	return frw::Value();
+	//
+	//// create buffer node
+	//frw::BufferNode bufferNode = CreateRPRRampNode(rampCtrlPoints, scope, bufferSize);
+	//
+	//// get arithmetic mul node tree for lookup
+	//const auto& nodeTreeGeneratorImpl = m_rampGenerators.find(rampType);
+	//assert(nodeTreeGeneratorImpl != m_rampGenerators.end());
+	//frw::ArithmeticNode rampNodeTree = nodeTreeGeneratorImpl->second(scope);
+	//frw::ArithmeticNode bufferLookupMulNode(scope.MaterialSystem(), frw::OperatorMultiply, rampNodeTree, frw::Value(bufferSize, bufferSize, bufferSize));
+	//
+	//// connect created lookup to buffer (this is needed to make buffer node work in RPR)
+	//bufferNode.SetUV(bufferLookupMulNode);
 }
 
 bool IsRampSupportedbyRPR(MFnDependencyNode& fnNode, RampUVType rampType)
@@ -409,66 +433,66 @@ frw::Value RampNodeConverter::Convert() const
 	MFnDependencyNode fnShaderNodeObject(shaderNodeObject, &status);
 	MPlug rampTypePlug = fnShaderNodeObject.findPlug("type", &status);
 	RampUVType rampType = (RampUVType)(1 << rampTypePlug.asInt(&status));
-
-	// no unsupprted attributes => process via rpr buffer node
-	if (!IsRampSupportedbyRPR(fnShaderNodeObject, rampType))
 	{
-		// process Ramp node default way (as picture)s
-		return m_params.scope.createImageFromShaderNodeUsingFileNode(shaderNodeObject, "outColor");
-	}
-
-	// iterate through node connections; search for connected RPRArithmetic
-	ArithmeticNodesBuffer arithmeticsConnectionBuffer;
-
-	MItDependencyGraph itdep(
-		shaderNodeObject,
-		MFn::kDependencyNode,
-		MItDependencyGraph::kUpstream,
-		MItDependencyGraph::kBreadthFirst,
-		MItDependencyGraph::kNodeLevel,
-		&status);
-
-	CHECK_MSTATUS(status)
-
-	for (; !itdep.isDone(); itdep.next())
-	{
-		MFnDependencyNode connectionNode(itdep.currentItem());
-		MString connectionNodeTypename = connectionNode.typeName();
-
-		// arithmetic node found => save it and name of attribute it is connected to to the buffer
-		// - this is to solve the problem that ramp attribute automatically converts connected nodes to colors
-		// - and thus we can't get this node from ramp attribute
-		if (connectionNodeTypename == "RPRArithmetic")
+		// no unsupprted attributes => process via rpr buffer node
+		if (!IsRampSupportedbyRPR(fnShaderNodeObject, rampType))
 		{
-			MStatus status;
-			MPlug outPlug = connectionNode.findPlug("out", &status);
-			MPlugArray theDestinations;
-			bool haveDestinations = outPlug.destinations(theDestinations, &status);
-			std::vector<MPlug> destinations;
-			WriteMayaArrayTo(destinations, theDestinations);
-			std::vector<MString> destinationNames;
-			for (auto& tplug : destinations)
-				destinationNames.push_back(tplug.name());
+			// process Ramp node default way (as picture)s
+			return m_params.scope.createImageFromShaderNodeUsingFileNode(shaderNodeObject, "outColor");
+		}
 
-			assert(destinationNames.size() == 1);
-			if (destinationNames.size() != 0)
+		// iterate through node connections; search for connected RPRArithmetic
+		ArithmeticNodesBuffer arithmeticsConnectionBuffer;
+
+		MItDependencyGraph itdep(
+			shaderNodeObject,
+			MFn::kDependencyNode,
+			MItDependencyGraph::kUpstream,
+			MItDependencyGraph::kBreadthFirst,
+			MItDependencyGraph::kNodeLevel,
+			&status);
+
+		CHECK_MSTATUS(status)
+
+			for (; !itdep.isDone(); itdep.next())
 			{
-				// we can't get name of connected nodes from ramp; Maya looses this information
-				arithmeticsConnectionBuffer.push_back(std::make_tuple(destinationNames[0], itdep.currentItem(), MColor())); 
+				MFnDependencyNode connectionNode(itdep.currentItem());
+				MString connectionNodeTypename = connectionNode.typeName();
+
+				// arithmetic node found => save it and name of attribute it is connected to to the buffer
+				// - this is to solve the problem that ramp attribute automatically converts connected nodes to colors
+				// - and thus we can't get this node from ramp attribute
+				if (connectionNodeTypename == "RPRArithmetic")
+				{
+					MStatus status;
+					MPlug outPlug = connectionNode.findPlug("out", &status);
+					MPlugArray theDestinations;
+					bool haveDestinations = outPlug.destinations(theDestinations, &status);
+					std::vector<MPlug> destinations;
+					WriteMayaArrayTo(destinations, theDestinations);
+					std::vector<MString> destinationNames;
+					for (auto& tplug : destinations)
+						destinationNames.push_back(tplug.name());
+
+					assert(destinationNames.size() == 1);
+					if (destinationNames.size() != 0)
+					{
+						// we can't get name of connected nodes from ramp; Maya looses this information
+						arithmeticsConnectionBuffer.push_back(std::make_tuple(destinationNames[0], itdep.currentItem(), MColor()));
+					}
+				}
 			}
+
+		// found connected arithmetics => process via rpr blend node
+		if (arithmeticsConnectionBuffer.size() > 0)
+		{
+			// sort connections array according to their position on the ramp
+			ArrangeBufferViaRampCtrlPoints(shaderNodeObject, m_params.scope, arithmeticsConnectionBuffer);
+
+			// recursevely create node tree from connections array
+			return GetBlendConvertorRecursive(shaderNodeObject, m_params.scope, rampType, arithmeticsConnectionBuffer);
 		}
 	}
-	
-	// found connected arithmetics => process via rpr blend node
-	if (arithmeticsConnectionBuffer.size() > 0)
-	{
-		// sort connections array according to their position on the ramp
-		ArrangeBufferViaRampCtrlPoints(shaderNodeObject, m_params.scope, arithmeticsConnectionBuffer);
-
-		// recursevely create node tree from connections array
-		return GetBlendConvertorRecursive(shaderNodeObject, m_params.scope, rampType, arithmeticsConnectionBuffer);
-	}
-
 	// use RPR Nodes
 	return GetBufferSamplerConvertor(shaderNodeObject, m_params.scope, rampType);
 }
