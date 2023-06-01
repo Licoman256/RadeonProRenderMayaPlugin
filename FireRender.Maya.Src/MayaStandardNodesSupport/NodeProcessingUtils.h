@@ -1,7 +1,6 @@
 #pragma once
 
 #include <functional>
-//#include "MayaStandardNodesSupport/RampNodeConverter.h"
 namespace MayaStandardNodeConverters
 {
 
@@ -130,7 +129,6 @@ frw::Value GetSamplerNodeForValue(const ConverterParams& params,
 	frw::Value outputMin = 0.0,
 	frw::Value outputMax = 1.0);
 }
-
 
 // note that we can have either MColor OR connected node as ramp control point data value
 template <typename T>

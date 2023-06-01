@@ -149,7 +149,7 @@ frw::Value FireMaya::RPRRamp::GetValue(const Scope& scope) const
 	return rampNode;
 }
 
-frw::ArithmeticNode FireMaya::RPRRamp::ApplyUVType(const Scope& scope, frw::ArithmeticNode& source, int uvIntType) const {
+frw::ArithmeticNode ApplyUVType(const FireMaya::Scope& scope, frw::ArithmeticNode& source, int uvIntType) {
 	RampUVType uvType = static_cast<RampUVType>(uvIntType);
 
 	switch (uvType)

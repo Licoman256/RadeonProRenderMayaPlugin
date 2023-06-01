@@ -14,7 +14,7 @@ limitations under the License.
 #include "FireMaya.h"
 #include "FireRenderUtils.h"
 #include "NodeProcessingUtils.h"
-
+#include "RampNodeConverter.h"
 #include <maya/MItDependencyGraph.h>
 
 namespace MayaStandardNodeConverters
@@ -138,10 +138,6 @@ bool CreateCtrlPointsFromPlug(MObject rampObject, std::vector<CtrlPointT>& out)
 	bool res = ForEachPlugInArrayPlug<std::vector<CtrlPointT>>(rampPlug, out, func);
 	if (!res)
 		return false;
-
-	// sort values by position (maya returns control point in random order)
-	std::sort(out.begin(), out.end(), [](auto first, auto second)->bool {
-		return (first.position < second.position); });
 
 	// add last ctrl point (is not added by Maya but is convinient for further calclulations)
 	CtrlPointDataT tCtrlPointValue = out.back().ctrlPointData;
@@ -413,6 +409,36 @@ bool GetConnectedCtrlPointsObjectsMayaRamp(MPlug& rampPlug, std::vector<CtrlPoin
 	assert(success);
 	assert(currCtrlPointIt == rampCtrlPoints.end());
 
+	// sort values by position (maya returns control points in random order)
+	// we have to do it here since plugs cannot be sorted and if we sort out points before reading plugs, they might become misaligned
+	// instead of alligning them, we sort points only after reading all the plugs
+	std::sort(rampCtrlPoints.begin(), rampCtrlPoints.end(), [](auto first, auto second)->bool {
+		return (first.position < second.position); });
+
+	// add control points to the beginning and the end as copies of neighboring points to remove black edges
+	// needed for rpr ramp internal logic
+	if (rampCtrlPoints.front().position > FLT_EPSILON)
+	{
+		rampCtrlPoints.emplace_back();
+		const auto& first = rampCtrlPoints.begin();
+		auto& ctrlPointRef = rampCtrlPoints.back();
+		ctrlPointRef.ctrlPointData = first->ctrlPointData;
+		ctrlPointRef.method = first->method;
+		ctrlPointRef.position = 0.0f;
+		ctrlPointRef.index = 99; // this value is irrelevant
+		std::rotate(rampCtrlPoints.begin(), rampCtrlPoints.end() - 1, rampCtrlPoints.end());
+	}
+
+	if ((1.0f - rampCtrlPoints.back().position) > FLT_EPSILON)
+	{
+		rampCtrlPoints.emplace_back();
+		const auto& last = rampCtrlPoints.end() - 2;
+		auto& ctrlPointRef = rampCtrlPoints.back();
+		ctrlPointRef.ctrlPointData = last->ctrlPointData;
+		ctrlPointRef.method = last->method;
+		ctrlPointRef.position = 1.0f;
+		ctrlPointRef.index = 100; // this value is irrelevant
+	}
 	return success;
 }
 
@@ -445,19 +471,20 @@ frw::Value GetBufferSamplerConvertor(
 	// - translate control points to RPR representation
 	TranslateControlPoints(rampNode, scope, outRampCtrlPoints);
 
-	//// get proper lookup
-	//MPlug rampPlug = fnRampObject.findPlug(Attribute::rampUVType, false);
-	//if (rampPlug.isNull())
-	//	return frw::Value();
-	//int uvIntType = rampPlug.asInt();
-	//
-	//frw::Value uv = scope.GetConnectedValue(fnRampObject.findPlug(Attribute::uv, false));
-	//frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uv, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
-	//frw::ArithmeticNode uvTransformed = ApplyUVType(scope, uvMod, uvIntType);
-	//
-	//frw::ArithmeticNode abs(scope.MaterialSystem(), frw::OperatorAbs, uvTransformed);
-	//frw::ArithmeticNode mod(scope.MaterialSystem(), frw::OperatorMod, abs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
-	//rampNode.SetValue(RPR_MATERIAL_INPUT_UV, mod);
+	// get proper lookup
+	MPlug rampPlug = fnRampObject.findPlug("type", false);
+	if (rampPlug.isNull())
+		return frw::Value();
+	int uvIntType = rampPlug.asInt();
+	uvIntType = 1 << uvIntType; // get the type to rpr ramp format (check RampUVType for details)
+	
+	frw::Value uv = scope.GetConnectedValue(fnRampObject.findPlug("uv", false));
+	frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uv, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	frw::ArithmeticNode uvTransformed = ApplyUVType(scope, uvMod, uvIntType);
+	
+	frw::ArithmeticNode abs(scope.MaterialSystem(), frw::OperatorAbs, uvTransformed);
+	frw::ArithmeticNode mod(scope.MaterialSystem(), frw::OperatorMod, abs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	rampNode.SetValue(RPR_MATERIAL_INPUT_UV, mod);
 	return rampNode;
 }
 
