@@ -49,35 +49,15 @@ bool ProcessColorPlug(MPlug& colorValuePlug, std::vector<float>& out)
 	return true;
 }
 
-template <typename T>
-void ProcessRampValueAttribute(MPlug& fakeRampPlug, RampCtrlPoint<T>& ctrlPoint);
 
-template <>
-void ProcessRampValueAttribute(MPlug& fakeRampPlug, RampCtrlPoint<MColor>& ctrlPoint)
-{
-	// color value
-	// - this is compound attribute of 3 floats RGB
-	std::vector<float> color;
-	color.reserve(3);
-	bool res = ForEachPlugInCompoundPlug<std::vector<float>>(fakeRampPlug, color, ProcessColorPlug);
-	assert(res);
-	ctrlPoint.ctrlPointData.set(MColor::kRGB, color[0], color[1], color[2]);
-}
+using CtrlPointDataT = std::tuple<MColor, MString, MObject>;
+using CtrlPointT = RampCtrlPoint<CtrlPointDataT>;
 
-template <>
-void ProcessRampValueAttribute(MPlug& fakeRampPlug, RampCtrlPoint<MString>& ctrlPoint)
-{
-	// color value
-	// - save plug name instead of color value (need to access node that acts as an input; maya doesn't allow us to get this ndoe otherwise)
-	ctrlPoint.ctrlPointData = fakeRampPlug.name();
-}
-
-template <>
-void ProcessRampValueAttribute(MPlug& fakeRampPlug, RampCtrlPoint<std::pair<MColor, MString>>& ctrlPoint)
+void ProcessRampValueAttribute(MPlug& fakeRampPlug, CtrlPointT& ctrlPoint)
 {
 	// color value
 	// - save plug name (need to access node that acts as an input; maya doesn't allow us to get this ndoe otherwise)
-	ctrlPoint.ctrlPointData.second = fakeRampPlug.name();
+	std::get<MString>(ctrlPoint.ctrlPointData) = fakeRampPlug.name(); // string
 
 	// color value
 	// - this is compound attribute of 3 floats RGB
@@ -85,16 +65,14 @@ void ProcessRampValueAttribute(MPlug& fakeRampPlug, RampCtrlPoint<std::pair<MCol
 	color.reserve(3);
 	bool res = ForEachPlugInCompoundPlug<std::vector<float>>(fakeRampPlug, color, ProcessColorPlug);
 	assert(res);
-	ctrlPoint.ctrlPointData.first.set(MColor::kRGB, color[0], color[1], color[2]);
+	std::get<MColor>(ctrlPoint.ctrlPointData) = MColor(MColor::kRGB, color[0], color[1], color[2]);
 }
 
-// this is executed for each element of array plug (pseudo ramp plug)
-template <typename T>
-bool ProcessFakeRampAttribute(MPlug& fakeRampPlug, std::vector<RampCtrlPoint<T>>& out)
+bool ProcessFakeRampAttribute(MPlug& fakeRampPlug, std::vector<CtrlPointT>& out)
 {
 	MStatus status;
 	MObject node = fakeRampPlug.attribute();
-	RampCtrlPoint<T>& ctrlPoint = out.back();
+	CtrlPointT& ctrlPoint = out.back();
 
 	MFn::Type dataType = node.apiType();
 	switch (dataType)
@@ -114,6 +92,11 @@ bool ProcessFakeRampAttribute(MPlug& fakeRampPlug, std::vector<RampCtrlPoint<T>>
 			ctrlPoint.position = positionValue;
 			break;
 		}
+		case MFn::kEnumAttribute:
+		{
+			// this is interpolation; ignored
+			break;
+		}
 		default:
 			return false;
 	}
@@ -121,8 +104,7 @@ bool ProcessFakeRampAttribute(MPlug& fakeRampPlug, std::vector<RampCtrlPoint<T>>
 	return true;
 }
 
-template <typename T>
-bool CreateCtrlPointsFromPlug(MObject rampObject, std::vector<RampCtrlPoint<T>>& out)
+bool CreateCtrlPointsFromPlug(MObject rampObject, std::vector<CtrlPointT>& out)
 {
 	out.clear();
 
@@ -139,21 +121,21 @@ bool CreateCtrlPointsFromPlug(MObject rampObject, std::vector<RampCtrlPoint<T>>&
 	if (count == 0)
 		return false;
 
-	out.reserve(count); 
+	out.reserve(count);
 
 	// this is executed for each element of array plug fakeRampPlug
-	auto func = [](MPlug& fakeRampPlug, std::vector<RampCtrlPoint<T>>& out)->bool 
+	auto func = [](MPlug& fakeRampPlug, std::vector<CtrlPointT>& out)->bool
 	{
 		out.emplace_back();
-		RampCtrlPoint<T>& ctrlPoint = out.back();
+		CtrlPointT& ctrlPoint = out.back();
 		ctrlPoint.method = InterpolationMethod::kLinear;
 		ctrlPoint.index = (unsigned int)out.size() - 1;
 
-		return ForEachPlugInCompoundPlug<std::vector<RampCtrlPoint<T>>>(fakeRampPlug, out, ProcessFakeRampAttribute<T>);
+		return ForEachPlugInCompoundPlug<std::vector<CtrlPointT>>(fakeRampPlug, out, ProcessFakeRampAttribute);
 	};
 
 	// creates ramp control point from attributes data in pseudo ramp attribute rampPlug
-	bool res = ForEachPlugInArrayPlug<std::vector<RampCtrlPoint<T>>>(rampPlug, out, func);
+	bool res = ForEachPlugInArrayPlug<std::vector<CtrlPointT>>(rampPlug, out, func);
 	if (!res)
 		return false;
 
@@ -162,7 +144,7 @@ bool CreateCtrlPointsFromPlug(MObject rampObject, std::vector<RampCtrlPoint<T>>&
 		return (first.position < second.position); });
 
 	// add last ctrl point (is not added by Maya but is convinient for further calclulations)
-	T tCtrlPointValue = out.back().ctrlPointData;
+	CtrlPointDataT tCtrlPointValue = out.back().ctrlPointData;
 	out.emplace_back();
 	out.back().position = 1.0f;
 	out.back().ctrlPointData = tCtrlPointValue;
@@ -301,10 +283,10 @@ void ArrangeBufferViaRampCtrlPoints(MObject& shaderNodeObject, const FireMaya::S
 {
 	// extract values from ramp node ramp
 	std::vector<RampCtrlPoint<std::pair<MColor, MString>>> rampCtrlPoints;
-	bool res = CreateCtrlPointsFromPlug<std::pair<MColor, MString>>(shaderNodeObject, rampCtrlPoints);
-	rampCtrlPoints.pop_back();
-	if (!res)
-		return;
+	//bool res = CreateCtrlPointsFromPlug<std::pair<MColor, MString>>(shaderNodeObject, rampCtrlPoints);
+	//rampCtrlPoints.pop_back();
+	//if (!res)
+	//	return;
 	
 	// create arithmetic nodes from regular color inputs
 	for (auto& ctrlPoint : rampCtrlPoints)
@@ -342,8 +324,99 @@ void ArrangeBufferViaRampCtrlPoints(MObject& shaderNodeObject, const FireMaya::S
 	}
 }
 
-using CtrlPointDataT = std::tuple<MColor, MString, MObject>;
-using CtrlPointT = RampCtrlPoint<CtrlPointDataT>;
+template <typename T>
+bool ProcessCompundPlugElementMayaRamp(MPlug& childPlug, T& out)
+{
+	static_assert(std::is_same<CtrlPointDataT, T>::value, "data container type mismatch!");
+
+	// find color input plug
+	std::string elementName = childPlug.name().asChar();
+	if (elementName.find("color") == std::string::npos)
+		return true; // this is not element that we are looking for => caller will continue processing elements of compound plug
+
+	// get connections
+	MStatus status;
+	MPlugArray connections;
+	bool connectedTo = childPlug.connectedTo(connections, true, true, &status);
+	if (!connectedTo)
+	{
+		std::get<MString>(out) = "";
+		std::get<MObject>(out) = MObject::kNullObj;
+
+		return true; // no connections found
+	}
+
+	// color input has connected node => save its name and object to output
+	assert(connections.length() == 1);
+
+	for (auto& it : connections)
+	{
+		// save connected node
+		std::get<MObject>(out) = it.node();
+
+		// get connected node output name (is needed to setup proper connection for material node tree)
+		std::string attrName = it.name().asChar();
+		MFnDependencyNode depN(it.node());
+		std::string connectedNodeName = depN.name().asChar();
+		connectedNodeName += ".";
+		attrName.erase(attrName.find(connectedNodeName), connectedNodeName.length());
+
+		MPlug outPlug = depN.findPlug(attrName.c_str(), &status);
+		assert(status == MStatus::kSuccess);
+		assert(!outPlug.isNull());
+		std::string plugName = outPlug.partialName().asChar();
+
+		// save connected node output name
+		std::get<MString>(out) = plugName.c_str();
+	}
+
+	return true; // connection found and processed
+}
+
+template <typename T>
+bool ProcessMayaRampArrayPlugElement(MPlug& elementPlug, T& out)
+{
+	static_assert(std::is_same<typename std::remove_reference<decltype(out)>::type, typename std::vector<CtrlPointT>::iterator>::value, "data container type mismatch!");
+
+	bool success = ForEachPlugInCompoundPlug<CtrlPointDataT>(elementPlug, out->ctrlPointData, ProcessCompundPlugElementMayaRamp<CtrlPointDataT>);
+
+	out++;
+
+	return success;
+}
+
+
+bool GetConnectedCtrlPointsObjectsMayaRamp(MPlug& rampPlug, std::vector<CtrlPointT>& rampCtrlPoints)
+{
+	MStatus status;
+
+	// ensure valid input
+	bool isArray = rampPlug.isArray(&status);
+	assert(isArray);
+	if (!isArray)
+		return false;
+
+	bool doArraysMatch = rampCtrlPoints.size() == rampPlug.numElements();
+	if (!doArraysMatch)
+	{
+		rampCtrlPoints.pop_back(); // remove "technical" control point created by helper if necessary
+	}
+	doArraysMatch = rampCtrlPoints.size() == rampPlug.numElements();
+	assert(doArraysMatch);
+	if (!doArraysMatch)
+		return false;
+
+	// iterate through control points; passing iterator as a data container here to avoid extra unnecessary data copy
+	auto currCtrlPointIt = rampCtrlPoints.begin();
+	using containerIterT = decltype(currCtrlPointIt);
+	static_assert(std::is_same<containerIterT, typename std::vector<CtrlPointT>::iterator>::value, "data container type mismatch!");
+
+	bool success = MayaStandardNodeConverters::ForEachPlugInArrayPlug<containerIterT>(rampPlug, currCtrlPointIt, MayaStandardNodeConverters::ProcessMayaRampArrayPlugElement<containerIterT>);
+	assert(success);
+	assert(currCtrlPointIt == rampCtrlPoints.end());
+
+	return success;
+}
 
 frw::Value GetBufferSamplerConvertor(
 	MObject& shaderNodeObject, 
@@ -354,47 +427,40 @@ frw::Value GetBufferSamplerConvertor(
 	frw::RampNode rampNode(scope.MaterialSystem());
 
 	// extract values from ramp node ramp
-	std::vector<RampCtrlPoint<MColor>> rampCtrlPoints;
 	MStatus status;
 	MFnDependencyNode fnRampObject(shaderNodeObject, &status);
 
 	// read input ramp
-	std::vector<CtrlPointT> outRampCtrlPoints;
+	std::vector<RampCtrlPoint<CtrlPointDataT>> outRampCtrlPoints;
 	MPlug ctrlPointsPlug = fnRampObject.findPlug("colorEntryList", &status);
-
 	// - read simple ramp control point values
-	bool isRampParced = GetRampValues<MColorArray>(ctrlPointsPlug, outRampCtrlPoints);
-	if (!isRampParced)
+
+	bool res = CreateCtrlPointsFromPlug(shaderNodeObject, outRampCtrlPoints);
+	if (!res)
 		return frw::Value();
 
 	// - read and process node ramp control point values
-	bool success = GetConnectedCtrlPointsObjects(ctrlPointsPlug, outRampCtrlPoints);
+	bool success = GetConnectedCtrlPointsObjectsMayaRamp(ctrlPointsPlug, outRampCtrlPoints);
 	if (!success)
 		return frw::Value();
-
+	
 	// - translate control points to RPR representation
 	TranslateControlPoints(rampNode, scope, outRampCtrlPoints);
 
-	frw::ArithmeticNode lookupTree = GetRampNodeLookup(scope, rampType);
-	rampNode.SetLookup(lookupTree);
-
-	return rampNode;
-
-	//MPlug ctrlPointsPlug = shaderNode.findPlug(Attribute::inputRamp, false);
-	//if (!res)
+	//// get proper lookup
+	//MPlug rampPlug = fnRampObject.findPlug(Attribute::rampUVType, false);
+	//if (rampPlug.isNull())
 	//	return frw::Value();
+	//int uvIntType = rampPlug.asInt();
 	//
-	//// create buffer node
-	//frw::BufferNode bufferNode = CreateRPRRampNode(rampCtrlPoints, scope, bufferSize);
+	//frw::Value uv = scope.GetConnectedValue(fnRampObject.findPlug(Attribute::uv, false));
+	//frw::ArithmeticNode uvMod(scope.MaterialSystem(), frw::OperatorMod, uv, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	//frw::ArithmeticNode uvTransformed = ApplyUVType(scope, uvMod, uvIntType);
 	//
-	//// get arithmetic mul node tree for lookup
-	//const auto& nodeTreeGeneratorImpl = m_rampGenerators.find(rampType);
-	//assert(nodeTreeGeneratorImpl != m_rampGenerators.end());
-	//frw::ArithmeticNode rampNodeTree = nodeTreeGeneratorImpl->second(scope);
-	//frw::ArithmeticNode bufferLookupMulNode(scope.MaterialSystem(), frw::OperatorMultiply, rampNodeTree, frw::Value(bufferSize, bufferSize, bufferSize));
-	//
-	//// connect created lookup to buffer (this is needed to make buffer node work in RPR)
-	//bufferNode.SetUV(bufferLookupMulNode);
+	//frw::ArithmeticNode abs(scope.MaterialSystem(), frw::OperatorAbs, uvTransformed);
+	//frw::ArithmeticNode mod(scope.MaterialSystem(), frw::OperatorMod, abs, frw::Value(1.0f, 1.0f, 1.0f, 1.0f));
+	//rampNode.SetValue(RPR_MATERIAL_INPUT_UV, mod);
+	return rampNode;
 }
 
 bool IsRampSupportedbyRPR(MFnDependencyNode& fnNode, RampUVType rampType)
