@@ -36,8 +36,7 @@ bool ProcessRampArrayPlugElement(MPlug& elementPlug, T& out)
 {
 	static_assert(std::is_same<typename std::remove_reference<decltype(out)>::type, typename std::vector<CtrlPointT>::iterator>::value, "data container type mismatch!");
 
-	bool success = ForEachPlugInCompoundPlug<CtrlPointDataT>(elementPlug, out->ctrlPointData, ProcessCompundPlugElement<CtrlPointDataT>);
-
+	bool success = ForEachPlugInCompoundPlug<CtrlPointDataT>(elementPlug, out->ctrlPointData, ProcessMayaRampControlPoint);
 	out++;
 
 	return success;
@@ -67,58 +66,6 @@ bool ForEachPlugInCompoundPlug(MPlug& compoundPlug, T& dataContainer, std::funct
 	}
 
 	return true;
-}
-
-// this is called for every element of compound plug of a Ramp attribute;
-// in Maya a single control point of a Ramp attribute is represented as a compound plug;
-// thus Ramp attribute is an array of compound plugs
-template <typename T>
-bool ProcessCompundPlugElement(MPlug& childPlug, T& out)
-{
-	static_assert(std::is_same<CtrlPointDataT, T>::value, "data container type mismatch!");
-
-	// find color input plug
-	std::string elementName = childPlug.name().asChar();
-	if (elementName.find("inputRamp_Color") == std::string::npos)
-		return true; // this is not element that we are looking for => caller will continue processing elements of compound plug
-
-	// get connections
-	MStatus status;
-	MPlugArray connections;
-	bool connectedTo = childPlug.connectedTo(connections, true, true, &status);
-	if (!connectedTo)
-	{
-		std::get<MString>(out) = "";
-		std::get<MObject>(out) = MObject::kNullObj;
-
-		return true; // no connections found
-	}
-
-	// color input has connected node => save its name and object to output
-	assert(connections.length() == 1);
-
-	for (auto& it : connections)
-	{
-		// save connected node
-		std::get<MObject>(out) = it.node();
-
-		// get connected node output name (is needed to setup proper connection for material node tree)
-		std::string attrName = it.name().asChar();
-		MFnDependencyNode depN(it.node());
-		std::string connectedNodeName = depN.name().asChar();
-		connectedNodeName += ".";
-		attrName.erase(attrName.find(connectedNodeName), connectedNodeName.length());
-
-		MPlug outPlug = depN.findPlug(attrName.c_str(), &status);
-		assert(status == MStatus::kSuccess);
-		assert(!outPlug.isNull());
-		std::string plugName = outPlug.partialName().asChar();
-
-		// save connected node output name
-		std::get<MString>(out) = plugName.c_str();
-	}
-
-	return true; // connection found and processed
 }
 
 frw::Value GetSamplerNodeForValue(const ConverterParams& params,
