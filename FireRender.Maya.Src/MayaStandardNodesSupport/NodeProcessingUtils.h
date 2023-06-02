@@ -29,19 +29,6 @@ bool ForEachPlugInArrayPlug(MPlug& arrayPlug, T& dataContainer, std::function<bo
 	return true;
 }
 
-// this is called for every element of Ramp control points array;
-// in Maya control points of the Ramp attribute are stored as an array attribute
-template <typename T>
-bool ProcessRampArrayPlugElement(MPlug& elementPlug, T& out)
-{
-	static_assert(std::is_same<typename std::remove_reference<decltype(out)>::type, typename std::vector<CtrlPointT>::iterator>::value, "data container type mismatch!");
-
-	bool success = ForEachPlugInCompoundPlug<CtrlPointDataT>(elementPlug, out->ctrlPointData, ProcessMayaRampControlPoint);
-	out++;
-
-	return success;
-}
-
 // function to perform action for each element of compound plug compoundPlug
 // - use dataContainer to pass data
 // - return false if detects error or if passed action function returns false
@@ -144,7 +131,7 @@ bool GetConnectedCtrlPointsObjects(MPlug& rampPlug, std::vector<RampCtrlPointDat
 	using containerIterT = decltype(currCtrlPointIt);
 	static_assert(std::is_same<containerIterT, typename std::vector<RampCtrlPointDataT>::iterator>::value, "data container type mismatch!");
 
-	bool success = MayaStandardNodeConverters::ForEachPlugInArrayPlug<containerIterT>(rampPlug, currCtrlPointIt, MayaStandardNodeConverters::ProcessRampArrayPlugElement<containerIterT>);
+	bool success = MayaStandardNodeConverters::ForEachPlugInArrayPlug<containerIterT>(rampPlug, currCtrlPointIt, ProcessRampArrayPlugElement);
 	assert(success);
 	assert(currCtrlPointIt == rampCtrlPoints.end());
 
