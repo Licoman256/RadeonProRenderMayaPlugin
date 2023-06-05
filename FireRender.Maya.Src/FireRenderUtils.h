@@ -927,6 +927,8 @@ struct RampCtrlPoint // T is either MColor or float
 	RampCtrlPoint() : method(InterpolationMethod::kNone), index(UINT_MAX) {}
 };
 
+bool ProcessRampArrayPlugElement(MPlug& elementPlug, std::vector<RampCtrlPoint<std::tuple<MColor, MString, MObject>>>::iterator& out);
+
 // function to get value between prev and next point on ramp corresponding to positionOnRamp using Linear Interpolation
 template <typename valType>
 auto RampLerp(const RampCtrlPoint<valType>& prev, const RampCtrlPoint<valType>& next, float positionOnRamp)

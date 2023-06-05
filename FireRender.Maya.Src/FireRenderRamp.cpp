@@ -147,7 +147,7 @@ bool ProcessMayaRampControlPoint(MPlug& childPlug, std::tuple<MColor, MString, M
 
 // this is called for every element of Ramp control points array;
 // in Maya control points of the Ramp attribute are stored as an array attribute
-bool ProcessRampArrayPlugElement(MPlug& elementPlug, std::vector<CtrlPointT>::iterator& out)
+bool ProcessRampArrayPlugElement(MPlug& elementPlug, std::vector<RampCtrlPoint<std::tuple<MColor, MString, MObject>>>::iterator& out)
 {
 	bool success = MayaStandardNodeConverters::ForEachPlugInCompoundPlug<CtrlPointDataT>(elementPlug, out->ctrlPointData, ProcessMayaRampControlPoint);
 	out++;
