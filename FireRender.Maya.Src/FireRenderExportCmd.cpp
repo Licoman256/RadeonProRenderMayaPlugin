@@ -47,6 +47,7 @@ limitations under the License.
 
 #include "Utils/Utils.h"
 
+int curFrame;
 FireRenderExportCmd::FireRenderExportCmd()
 {
 }
@@ -548,6 +549,7 @@ MStatus FireRenderExportCmd::doIt(const MArgList& args)
 			// process each frame
 			for (int frame = firstFrame; frame <= lastFrame; ++frame)
 			{
+				curFrame = frame;
 				MString commandPy = "maya.utils.processIdleEvents()";
 				MGlobal::executePythonCommand(commandPy);
 

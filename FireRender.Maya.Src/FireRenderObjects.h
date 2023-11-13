@@ -482,6 +482,8 @@ public:
 	// return portal
 	bool portal();
 
+	void debugPrintLightStatus(char toPrint);
+	void debugPrintLightStatus(std::string toPrint);
 protected:
 	void UpdateTransform(const MMatrix& matrix) override;
 

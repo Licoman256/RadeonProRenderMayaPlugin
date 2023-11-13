@@ -22,7 +22,6 @@ limitations under the License.
 #include <algorithm>
 #include <vector>
 #include <iterator>
-
 #include <maya/MFnLight.h>
 #include <maya/MFnDependencyNode.h>
 #include <maya/MItDependencyGraph.h>
@@ -2099,6 +2098,98 @@ void FireRenderLight::clear()
 	FireRenderObject::clear();
 }
 
+extern int curFrame;
+
+void FireRenderLight::debugPrintLightStatus(char toPrint) {
+	std::string a = uuid();
+	size_t lastPipePos = a.find_last_of('|');
+	a = a.substr(lastPipePos + 1);
+	std::replace_if(a.begin(), a.end(), [](char c) { return !std::isalnum(c); }, '_');
+	a = "D:/downloads/" + a + ".txt";
+	std::ifstream file(a);
+
+	std::string lastLine = "";
+	char firstCharacter = 0;
+	char secondCharacter = 0;
+
+	// Read the file line by line, saving the last line encountered
+	if (file.is_open()) {
+		while (!file.eof()) {
+			std::getline(file, lastLine);
+		}
+		file.close();
+	}
+	// Check if the last line is not empty
+	// Get the first character of the last line
+	if (lastLine != "") {
+		// Get the first character of the last line
+		firstCharacter = lastLine[0];
+		secondCharacter = lastLine[1];
+	}
+
+	std::ofstream out;
+	out.open(a, std::ios_base::app);
+	if ((firstCharacter - '0') * 10 + secondCharacter - '0' == curFrame)
+	{
+		out << toPrint;
+	}
+	else {
+		out << "\n";
+		if (curFrame < 10)
+		{
+			out << "0";
+		}
+		out << std::to_string(curFrame) << toPrint;
+	}
+}
+
+void FireRenderLight::debugPrintLightStatus(std::string toPrint) {
+	std::string a = uuid();
+	size_t lastPipePos = a.find_last_of('|');
+	a = a.substr(lastPipePos + 1);
+	std::replace_if(a.begin(), a.end(), [](char c) { return !std::isalnum(c); }, '_');
+	a = "D:/downloads/" + a + ".txt";
+	std::ifstream file(a);
+
+	std::string lastLine = "";
+	char firstCharacter = 0;
+	char secondCharacter = 0;
+
+	// Read the file line by line, saving the last line encountered
+	if (file.is_open()) {
+		while (!file.eof()) {
+			std::getline(file, lastLine);
+		}
+		file.close();
+	}
+	// Check if the last line is not empty
+	// Get the first character of the last line
+	if (lastLine != "") {
+		// Get the first character of the last line
+		firstCharacter = lastLine[0];
+		secondCharacter = lastLine[1];
+	}
+
+	lastPipePos = toPrint.find_last_of('|');
+	toPrint = toPrint.substr(lastPipePos + 1);
+	std::replace_if(toPrint.begin(), toPrint.end(), [](char c) { return !std::isalnum(c); }, '_');
+
+	std::ofstream out;
+	out.open(a, std::ios_base::app);
+	if ((firstCharacter - '0') * 10 + secondCharacter - '0' == curFrame)
+	{
+		out << " " << toPrint << " ";
+	}
+	else {
+		out << "\n";
+		if (curFrame < 10)
+		{
+			out << "0";
+		}
+		out << std::to_string(curFrame) << " " << toPrint << " ";
+	}
+}
+
 void FireRenderLight::detachFromScene()
 {
 	if (!m_isVisible)
@@ -2123,23 +2214,39 @@ void FireRenderLight::detachFromScene()
 	if (auto scene = Scene())
 	{
 		if (m_light.isAreaLight && m_light.areaLight)
+		{
 			scene.Detach(m_light.areaLight);
+			debugPrintLightStatus('_');
+		}
 		if ((!m_light.isAreaLight) && m_light.light)
-			scene.Detach(m_light.light);
+		{
+			scene.Detach(m_light.areaLight);
+			debugPrintLightStatus('_');
+		}
 	}
 	m_isVisible = false;
 }
 
+
 void FireRenderLight::attachToScene()
 {
-	if (m_isVisible)
+	if (m_isVisible) {
+		debugPrintLightStatus('V');
 		return;
-	if (auto scene = Scene())
+	}
+	if (auto scene = Scene()) 
 	{
+		int x = 0;
 		if (m_light.isAreaLight && m_light.areaLight)
+		{ 
 			scene.Attach(m_light.areaLight);
+			debugPrintLightStatus('^');
+		}
 		if ((!m_light.isAreaLight) && m_light.light)
+		{
 			scene.Attach(m_light.light);
+			debugPrintLightStatus('^');
+		}
 		m_isVisible = true;
 	}
 }
@@ -2183,6 +2290,7 @@ void FireRenderLight::UpdateTransform(const MMatrix& matrix)
 
 bool FireRenderLight::ShouldUpdateTransformOnly() const
 {
+	return false;
 	return m_bIsTransformChanged;
 }
 
@@ -2200,12 +2308,13 @@ PLType FireRenderPhysLight::GetPhysLightType(MObject node)
 
 void FireRenderLight::Freshen(bool shouldCalculateHash)
 {
-
+	DagPath().inclusiveMatrix();
 	if (ShouldUpdateTransformOnly())
 	{
 		MMatrix matrix = DagPath().inclusiveMatrix();
 		UpdateTransform(matrix);
 		m_bIsTransformChanged = false;
+		debugPrintLightStatus('-');
 		return;
 	}
 
@@ -2243,11 +2352,28 @@ void FireRenderLight::Freshen(bool shouldCalculateHash)
 			{
 				frw::Shader linkedShader = scope.GetCachedShader(it->second);
 				if (!linkedShader.IsValid())
+				{
+					std::string first = it->first.c_str();
+					debugPrintLightStatus(first);
+					std::string second = it->second.c_str();
+					debugPrintLightStatus(second);
+
+					debugPrintLightStatus('s');
 					continue;
+				}
 
 				linkedShader.LinkLight(GetFrLight().light);
+				scope.ClearCachedShaderIds(it->first);
 			}
 		}
+		else
+		{
+			debugPrintLightStatus('v');
+		}
+	}
+	else
+	{
+		debugPrintLightStatus('p');
 	}
 
 	FireRenderNode::Freshen(shouldCalculateHash);
